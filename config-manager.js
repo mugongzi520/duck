@@ -424,11 +424,19 @@ class ConfigManager {
             // 配置删除
             bindEvent('btn-delete-config', 'click', this.deleteConfig);
             
-            // 文件上传
+            // 文件上传 - 移除外层箭头函数，因为bindEvent内部已经处理了this上下文
             bindEvent('file-input', 'change', this.handleFileUpload);
             
-            // 导入配置按钮
+            // 导入配置按钮 - 重新添加，确保顶部导航栏的导入按钮可以使用
             bindEvent('btn-import-config', 'click', () => {
+                const fileInput = document.getElementById('file-input');
+                if (fileInput) {
+                    fileInput.click();
+                }
+            });
+            
+            // 右侧编辑区导入按钮 - 也需要绑定，确保两个导入按钮都能正常工作
+            bindEvent('quick-import-config', 'click', () => {
                 const fileInput = document.getElementById('file-input');
                 if (fileInput) {
                     fileInput.click();
@@ -1335,11 +1343,10 @@ class ConfigManager {
                     this.configs.push(newConfig);
                 }
 
-                // 保存和更新配置
-                const configManager = window.configManager || this;
-                configManager.saveConfigsToStorage();
-                configManager.updateConfigList();
-                configManager.selectConfig(newConfig.id);
+                // 保存和更新配置 - 直接使用window.configManager确保正确的实例
+                window.configManager.saveConfigsToStorage();
+                window.configManager.updateConfigList();
+                window.configManager.selectConfig(newConfig.id);
                 
                 // 不使用this，直接创建通知元素
                 const notification = document.createElement('div');
@@ -1354,6 +1361,9 @@ class ConfigManager {
                 setTimeout(() => {
                     notification.remove();
                 }, 3000);
+                
+                // 成功处理后重置文件输入
+                event.target.value = '';
             } catch (error) {
                 console.error('导入配置错误:', error);
                 // 不使用this，直接创建通知元素
@@ -1369,10 +1379,12 @@ class ConfigManager {
                 setTimeout(() => {
                     notification.remove();
                 }, 3000);
+                
+                // 失败时也重置文件输入
+                event.target.value = '';
             }
         };
         reader.readAsText(file);
-        event.target.value = '';
     }
 
     /**
@@ -1522,15 +1534,5 @@ class ConfigManager {
     }
 }
 
-// 当DOM内容加载完成后初始化配置管理器
-document.addEventListener('DOMContentLoaded', function() {
-    try {
-        // 创建配置管理器实例
-        window.configManager = new ConfigManager();
-        // 初始化配置管理器
-        window.configManager.initialize();
-    } catch (error) {
-        console.error('创建配置管理器实例失败:', error);
-        alert('创建配置管理器实例失败: ' + error.message);
-    }
-});
+// 注意：ConfigManager的实例化和初始化在index.html的DOMContentLoaded中处理
+// 避免重复初始化导致的问题

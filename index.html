@@ -506,8 +506,9 @@
             // 配置管理相关
             document.getElementById('btn-new-config').addEventListener('click', showNewConfigModal);
             document.getElementById('quick-new-config').addEventListener('click', showNewConfigModal);
-            document.getElementById('btn-import-config').addEventListener('click', () => document.getElementById('file-input').click());
-            document.getElementById('quick-import-config').addEventListener('click', () => document.getElementById('file-input').click());
+            // 移除重复的事件绑定，因为config-manager.js中已经绑定了
+            // document.getElementById('btn-import-config').addEventListener('click', () => document.getElementById('file-input').click());
+// 移除直接绑定的事件监听器，避免重复触发，统一在config-manager.js中管理
             document.getElementById('close-new-config-modal').addEventListener('click', hideNewConfigModal);
             document.getElementById('cancel-new-config').addEventListener('click', hideNewConfigModal);
             document.getElementById('confirm-new-config').addEventListener('click', createNewConfig);
