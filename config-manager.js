@@ -1018,7 +1018,7 @@ class ConfigManager {
             weapon: 'WeaponProperties',
             melee: 'MeleeWeaponProperties',
             ammo: 'AmmoProperties',
-            accessory: 'AccessoryProperties',
+            accessory: 'mshook',
             item: 'mshook'  // 物品类型使用mshook作为属性键名
         };
         return propsMap[type];
