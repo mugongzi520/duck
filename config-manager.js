@@ -205,9 +205,10 @@ class ConfigManager {
         Object.entries(this.tagData).forEach(([key, value]) => {
             const tagOption = document.createElement('label');
             tagOption.className = 'inline-flex items-center px-2 py-1 rounded-full text-sm cursor-pointer bg-gray-100 hover:bg-gray-200 transition-colors';
+            // 修改标签显示格式为：中文名字-配置中的实际名字
             tagOption.innerHTML = `
                 <input type="checkbox" data-tag="${key}" class="mr-1 h-3 w-3 text-primary focus:ring-primary border-gray-300 rounded">
-                <span>${value}</span>
+                <span>${value}-${key}</span>
             `;
             
             // 添加事件监听
@@ -278,7 +279,8 @@ class ConfigManager {
             checkbox.setAttribute('data-tag', tagText);
             
            const textSpan = document.createElement('span');
-           textSpan.textContent = tagText;
+           // 自定义标签也使用格式：中文名字-配置中的实际名字
+           textSpan.textContent = `${tagText}-${tagKey}`;
            
            // 添加删除按钮
            const deleteButton = document.createElement('button');
@@ -342,6 +344,7 @@ class ConfigManager {
             const tagText = option.querySelector('span').textContent.toLowerCase();
             const tagKey = option.querySelector('input').dataset.tag.toLowerCase();
             
+            // 即使标签格式改变，搜索功能仍然支持匹配显示文本和数据标签
             if (tagText.includes(searchTerm) || tagKey.includes(searchTerm)) {
                 option.style.display = 'flex';
             } else {
@@ -395,6 +398,9 @@ class ConfigManager {
             
             // 配置类型切换
             bindEvent('config-type', 'change', this.updateSpecificProperties);
+            
+            // 属性搜索
+            bindEvent('property-search', 'input', this.filterProperties);
             
             // 标签搜索
             const tagSearch = document.getElementById('tag-search');
@@ -811,62 +817,217 @@ class ConfigManager {
             // 清空特定属性区域
             specificPropsGrid.innerHTML = '';
             
-            // 获取字段映射
-            const fields = this.getConfigFieldsByType(configType);
+            // 添加搜索框
+            const searchDiv = document.createElement('div');
+            searchDiv.className = 'relative mb-4';
+            searchDiv.innerHTML = `
+                <input type="text" id="property-search" placeholder="搜索属性..." 
+                    class="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            `;
+            specificPropsGrid.appendChild(searchDiv);
+            
+            // 重新绑定搜索事件
+            const propertySearch = document.getElementById('property-search');
+            if (propertySearch) {
+                propertySearch.removeEventListener('input', this.filterProperties);
+                propertySearch.addEventListener('input', (e) => this.filterProperties.call(this, e));
+            }
+            
+            // 获取特定类型字段映射和mshook字段映射
+            const typeFields = this.getConfigFieldsByType(configType);
+            const mshookFields = this.getConfigFieldsByType('item'); // 使用item类型的字段作为mshook字段
             
             // 获取属性键名
             const propsKey = this.getSpecificPropsKey(configType);
+            const mshookKey = this.getMshookPropsKey();
             
             // 获取当前值（如果有），添加额外的空值检查
-            let currentValues = {};
-            if (this.currentConfig && this.currentConfig.content && propsKey) {
+            let typeValues = {};
+            let mshookValues = {};
+            
+            if (this.currentConfig && this.currentConfig.content) {
                 try {
-                    currentValues = this.currentConfig.content[propsKey] || {};
+                    if (propsKey) {
+                        typeValues = this.currentConfig.content[propsKey] || {};
+                    }
+                    mshookValues = this.currentConfig.content[mshookKey] || {};
                 } catch (e) {
                     console.warn('获取当前属性值时出错:', e);
-                    currentValues = {};
+                    typeValues = {};
+                    mshookValues = {};
                 }
-            }
-            
-            if (Object.keys(fields).length === 0) {
-                specificPropsGrid.innerHTML = `
-                    <div class="text-center text-gray-500 py-4">
-                        该类型暂无特定属性配置项
-                    </div>
-                `;
-                return;
             }
             
             // 根据配置类型获取验证规则
             const typeRules = this.VALIDATION_RULES[configType];
             
-            // 添加特定属性
-            Object.entries(fields).forEach(([key, label]) => {
-                try {
-                    const fieldDiv = document.createElement('div');
-                    fieldDiv.className = 'mb-4';
-                    
-                    // 检查是否是有效的字段
-                    let fieldClass = 'specific-property w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30';
-                    let fieldNote = '';
-                    
-                    if (typeRules && typeRules.validFields && !typeRules.validFields.includes(key)) {
-                        fieldNote = '<small class="text-gray-500 block mt-1">注意：该字段可能不被游戏识别</small>';
+            let hasProps = false;
+            
+            // 添加特定类型属性
+            if (Object.keys(typeFields).length > 0) {
+                hasProps = true;
+                
+                // 创建特定类型属性折叠面板
+                const typeContainer = document.createElement('div');
+                typeContainer.className = 'mb-4';
+                
+                const typeHeader = document.createElement('div');
+                typeHeader.className = 'flex justify-between items-center cursor-pointer bg-gray-50 p-3 rounded-t-md border border-gray-200';
+                typeHeader.innerHTML = `
+                    <h4 class="text-md font-medium text-gray-800">特定类型属性</h4>
+                    <span class="text-gray-500 type-toggle">▼</span>
+                `;
+                
+                const typeContent = document.createElement('div');
+                typeContent.className = 'bg-white p-4 rounded-b-md border-x border-b border-gray-200 type-content';
+                
+                // 添加特定类型属性
+                Object.entries(typeFields).forEach(([key, label]) => {
+                    try {
+                        const fieldDiv = document.createElement('div');
+                        fieldDiv.className = 'mb-3 last:mb-0';
+                        
+                        // 检查是否是有效的字段
+                        let fieldClass = 'specific-property w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30';
+                        let fieldNote = '';
+                        
+                        if (typeRules && typeRules.validFields && !typeRules.validFields.includes(key)) {
+                            fieldNote = '<small class="text-gray-500 block mt-1">注意：该字段可能不被游戏识别</small>';
+                        }
+                        
+                        fieldDiv.innerHTML = `
+                            <label class="block text-sm font-medium text-gray-700 mb-1">${label} <span class="text-xs text-gray-500">(${key})</span></label>
+                            <input type="number" step="0.01" min="0" 
+                                class="${fieldClass}"
+                                data-key="${key}"
+                                data-prop-type="type"
+                                value="${typeValues[key] || 0}">
+                            ${fieldNote}
+                        `;
+                        typeContent.appendChild(fieldDiv);
+                    } catch (e) {
+                        console.warn(`添加特定类型字段${key}时出错:`, e);
                     }
+                });
+                
+                typeContainer.appendChild(typeHeader);
+                typeContainer.appendChild(typeContent);
+                specificPropsGrid.appendChild(typeContainer);
+                
+                // 添加特定类型属性折叠功能
+                typeHeader.addEventListener('click', () => {
+                    const isExpanded = typeContent.style.display !== 'none';
+                    typeContent.style.display = isExpanded ? 'none' : 'block';
+                    typeHeader.querySelector('.type-toggle').textContent = isExpanded ? '▶' : '▼';
+                });
+            }
+            
+            // 创建属性分类映射
+            const propertyCategories = {
+                '移动相关属性': ['WalkSpeed', 'WalkAcc', 'RunSpeed', 'RunAcc', 'TurnSpeed', 'AimTurnSpeed', 'DashSpeed', 'DashCanControl', 'Moveability'],
+                '耐力相关属性': ['Stamina', 'StaminaDrainRate', 'StaminaRecoverRate', 'StaminaRecoverTime'],
+                '能量和资源相关属性': ['MaxEnergy', 'CurrentEnergy', 'EnergyCost', 'MaxWater', 'CurrentWater', 'WaterCost', 'FoodGain', 'HealGain', 'WaterEnergyRecoverMultiplier'],
+                '战斗相关属性': ['MeleeDamageMultiplier', 'MeleeCritRateGain', 'MeleeCritDamageGain', 'GunDamageMultiplier', 'ReloadSpeedGain', 'GunCritRateGain', 'GunCritDamageGain', 'BulletSpeedMultiplier', 'RecoilControl', 'GunScatterMultiplier', 'GunDistanceMultiplier'],
+                '感知相关属性': ['NightVisionAbility', 'NightVisionType', 'HearingAbility', 'SoundVisable', 'ViewAngle', 'ViewDistance', 'SenseRange', 'VisableDistanceFactor'],
+                '物品和装备相关属性': ['MaxWeight', 'InventoryCapacity', 'PetCapcity', 'StormProtection', 'GasMask', 'FlashLight'],
+                '声音相关属性': ['WalkSoundRange', 'RunSoundRange'],
+                '生命值和护甲相关属性': ['MaxHealth', 'BodyArmor', 'HeadArmor'],
+                '元素抵抗相关属性': ['ElementFactor_Physics', 'ElementFactor_Fire', 'ElementFactor_Poison', 'ElementFactor_Electricity', 'ElementFactor_Space']
+            };
+            
+            // 添加mshook属性（所有类型都支持）
+            if (Object.keys(mshookFields).length > 0) {
+                hasProps = true;
+                
+                // 创建mshook折叠面板
+                const mshookContainer = document.createElement('div');
+                mshookContainer.className = 'mt-6 mb-4';
+                
+                const mshookHeader = document.createElement('div');
+                mshookHeader.className = 'flex justify-between items-center cursor-pointer bg-gray-50 p-3 rounded-t-md border border-gray-200';
+                mshookHeader.innerHTML = `
+                    <h4 class="text-md font-medium text-gray-800">通用属性 (mshook)</h4>
+                    <span class="text-gray-500 mshook-toggle">▼</span>
+                `;
+                
+                const mshookContent = document.createElement('div');
+                mshookContent.className = 'bg-white p-4 rounded-b-md border-x border-b border-gray-200 mshook-content';
+                
+                // 按分类渲染mshook属性
+                Object.entries(propertyCategories).forEach(([category, keys]) => {
+                    // 过滤出当前分类中存在的属性
+                    const categoryFields = Object.entries(mshookFields).filter(([key]) => keys.includes(key));
                     
-                    fieldDiv.innerHTML = `
-                        <label class="block text-sm font-medium text-gray-700 mb-1">${label} <span class="text-xs text-gray-500">(${key})</span></label>
-                        <input type="number" step="0.01" min="0" 
-                            class="${fieldClass}"
-                            data-key="${key}"
-                            value="${currentValues[key] || 0}">
-                        ${fieldNote}
-                    `;
-                    specificPropsGrid.appendChild(fieldDiv);
-                } catch (e) {
-                    console.warn(`添加字段${key}时出错:`, e);
-                }
-            });
+                    if (categoryFields.length > 0) {
+                        // 创建分类折叠面板
+                        const categoryDiv = document.createElement('div');
+                        categoryDiv.className = 'mb-4';
+                        
+                        const categoryHeader = document.createElement('div');
+                        categoryHeader.className = 'flex justify-between items-center cursor-pointer bg-gray-50 p-2 rounded-t-md border border-gray-200';
+                        categoryHeader.innerHTML = `
+                            <h5 class="text-sm font-medium text-gray-700">${category}</h5>
+                            <span class="text-gray-500 text-xs category-toggle">▼</span>
+                        `;
+                        
+                        const categoryContent = document.createElement('div');
+                        categoryContent.className = 'p-3 rounded-b-md border-x border-b border-gray-200 bg-gray-50 category-content';
+                        
+                        // 添加该分类下的所有属性
+                        categoryFields.forEach(([key, label]) => {
+                            try {
+                                const fieldDiv = document.createElement('div');
+                                fieldDiv.className = 'mb-3 last:mb-0';
+                                
+                                fieldDiv.innerHTML = `
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">${label} <span class="text-xs text-gray-500">(${key})</span></label>
+                                    <input type="number" step="0.01" min="0" 
+                                        class="specific-property w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                        data-key="${key}"
+                                        data-prop-type="mshook"
+                                        value="${mshookValues[key] || 0}">
+                                    <small class="text-gray-500 block mt-1 text-xs">mshook属性</small>
+                                `;
+                                categoryContent.appendChild(fieldDiv);
+                            } catch (e) {
+                                console.warn(`添加mshook字段${key}时出错:`, e);
+                            }
+                        });
+                        
+                        categoryDiv.appendChild(categoryHeader);
+                        categoryDiv.appendChild(categoryContent);
+                        mshookContent.appendChild(categoryDiv);
+                        
+                        // 添加分类折叠功能
+                        categoryHeader.addEventListener('click', () => {
+                            const isExpanded = categoryContent.style.display !== 'none';
+                            categoryContent.style.display = isExpanded ? 'none' : 'block';
+                            categoryHeader.querySelector('.category-toggle').textContent = isExpanded ? '▶' : '▼';
+                        });
+                    }
+                });
+                
+                mshookContainer.appendChild(mshookHeader);
+                mshookContainer.appendChild(mshookContent);
+                specificPropsGrid.appendChild(mshookContainer);
+                
+                // 添加mshook折叠功能
+                mshookHeader.addEventListener('click', () => {
+                    const isExpanded = mshookContent.style.display !== 'none';
+                    mshookContent.style.display = isExpanded ? 'none' : 'block';
+                    mshookHeader.querySelector('.mshook-toggle').textContent = isExpanded ? '▶' : '▼';
+                });
+            }
+            
+            // 如果没有任何属性
+            if (!hasProps) {
+                specificPropsGrid.innerHTML = `
+                    <div class="text-center text-gray-500 py-4">
+                        该类型暂无属性配置项
+                    </div>
+                `;
+            }
         } catch (error) {
             console.error('更新特定属性区域失败:', error);
             const specificPropsGrid = document.getElementById('specific-properties');
@@ -893,6 +1054,13 @@ class ConfigManager {
             item: 'mshook'  // 物品类型使用mshook作为属性键名
         };
         return propsMap[type];
+    }
+    
+    /**
+     * 获取mshook属性键名 - 所有类型都支持mshook
+     */
+    getMshookPropsKey() {
+        return 'mshook';
     }
 
     /**
@@ -1024,6 +1192,17 @@ class ConfigManager {
                 'FoodGain': '食物增益',
                 'HealGain': '治疗增益',
                 'WaterEnergyRecoverMultiplier': '水分能量恢复乘数',
+                // 生命值相关属性
+                'MaxHealth': '最大生命值',
+                // 护甲相关属性
+                'BodyArmor': '身体护甲',
+                'HeadArmor': '头部护甲',
+                // 元素抵抗相关属性
+                'ElementFactor_Physics': '物理元素抵抗',
+                'ElementFactor_Fire': '火焰元素抵抗',
+                'ElementFactor_Poison': '毒素元素抵抗',
+                'ElementFactor_Electricity': '电击元素抵抗',
+                'ElementFactor_Space': '空间元素抵抗',
                 // 战斗相关属性
                 'MeleeDamageMultiplier': '近战伤害乘数',
                 'MeleeCritRateGain': '近战暴击率增益',
@@ -1213,20 +1392,33 @@ class ConfigManager {
                 config.content.CostItems = costItems;
             }
             
-            // 获取特定属性
+            // 获取特定属性和mshook属性的键名
             const specificPropsKey = this.getSpecificPropsKey(configType);
+            const mshookPropsKey = this.getMshookPropsKey();
             
+            // 初始化特定类型属性
             if (specificPropsKey) {
                 config.content[specificPropsKey] = {};
-                document.querySelectorAll('.specific-property').forEach(input => {
-                    const key = input.dataset.key;
-                    const value = parseFloat(input.value);
-                    // 只有值不是NaN且不为0的属性才保存，减少配置文件大小
-                    if (!isNaN(value) && value !== 0) {
+            }
+            
+            // 初始化mshook属性
+            config.content[mshookPropsKey] = {};
+            
+            // 处理所有特定属性输入
+            document.querySelectorAll('.specific-property').forEach(input => {
+                const key = input.dataset.key;
+                const value = parseFloat(input.value);
+                const propType = input.dataset.propType || 'type'; // 'type'表示特定类型属性，'mshook'表示mshook属性
+                
+                // 只有值不是NaN且不为0的属性才保存，减少配置文件大小
+                if (!isNaN(value) && value !== 0) {
+                    if (propType === 'mshook') {
+                        config.content[mshookPropsKey][key] = value;
+                    } else if (specificPropsKey) {
                         config.content[specificPropsKey][key] = value;
                     }
-                });
-            }
+                }
+            });
             
             // 验证配置
             const validation = this.validateConfig(config);
@@ -1449,6 +1641,70 @@ class ConfigManager {
     }
 
     /**
+     * 过滤属性列表
+     */
+    filterProperties() {
+        const searchTerm = document.getElementById('property-search').value.toLowerCase().trim();
+        const propertyItems = document.querySelectorAll('.specific-property');
+        
+        // 计算显示的属性数量
+        let visibleCount = 0;
+        
+        propertyItems.forEach(input => {
+            const fieldDiv = input.closest('.mb-3');
+            if (!fieldDiv) return;
+            
+            const label = fieldDiv.querySelector('label');
+            if (!label) return;
+            
+            const labelText = label.textContent.toLowerCase();
+            const key = input.dataset.key || '';
+            
+            // 检查标签文本或键名是否包含搜索词
+            const matches = labelText.includes(searchTerm) || key.toLowerCase().includes(searchTerm);
+            
+            fieldDiv.style.display = matches ? 'block' : 'none';
+            
+            if (matches) {
+                visibleCount++;
+            }
+        });
+        
+        // 检查并隐藏空的分类
+        const categoryContents = document.querySelectorAll('.category-content');
+        categoryContents.forEach(content => {
+            const visibleFields = content.querySelectorAll('.mb-3:not([style*="display: none"])');
+            content.style.display = visibleFields.length > 0 ? 'block' : 'none';
+        });
+        
+        // 检查并隐藏空的类型内容
+        const typeContent = document.querySelector('.type-content');
+        if (typeContent) {
+            const visibleFields = typeContent.querySelectorAll('.mb-3:not([style*="display: none"])');
+            typeContent.style.display = visibleFields.length > 0 ? 'block' : 'none';
+        }
+        
+        // 检查并隐藏空的mshook内容
+        const mshookContent = document.querySelector('.mshook-content');
+        if (mshookContent) {
+            const visibleCategories = mshookContent.querySelectorAll('.category-content:not([style*="display: none"])');
+            mshookContent.style.display = visibleCategories.length > 0 ? 'block' : 'none';
+        }
+        
+        // 如果搜索框为空，重置所有显示状态
+        if (!searchTerm) {
+            propertyItems.forEach(input => {
+                const fieldDiv = input.closest('.mb-3');
+                if (fieldDiv) fieldDiv.style.display = 'block';
+            });
+            
+            if (typeContent) typeContent.style.display = 'block';
+            if (mshookContent) mshookContent.style.display = 'block';
+            categoryContents.forEach(content => content.style.display = 'block');
+        }
+    }
+
+    /**
      * 检测配置类型 - 更智能的类型检测
      */
     detectConfigType(configData) {
@@ -1457,7 +1713,11 @@ class ConfigManager {
         if (configData.MeleeWeaponProperties) return 'melee';
         if (configData.AmmoProperties) return 'ammo';
         if (configData.AccessoryProperties) return 'accessory';
-        if (configData.mshook) return 'item'; // 检查是否有mshook属性
+        // 注意：mshook现在是所有类型都支持的属性，不再仅用于识别item类型
+        // 如果没有特定属性但有mshook，则默认为item类型
+        if (!configData.WeaponProperties && !configData.MeleeWeaponProperties && 
+            !configData.AmmoProperties && !configData.AccessoryProperties && 
+            configData.mshook) return 'item';
         
         // 根据字段名称推断类型
         const hasWeaponFields = Object.keys(configData).some(key => 
