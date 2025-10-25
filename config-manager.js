@@ -448,6 +448,9 @@ class ConfigManager {
                     fileInput.click();
                 }
             });
+            
+            // 剪贴板导入按钮
+            bindEvent('btn-clipboard-import', 'click', this.handleClipboardImport);
             // 图片上传相关
             bindEvent('btn-upload-icon', 'click', this.showImageUploadModal);
             bindEvent('confirm-image-upload', 'click', this.uploadImage);
@@ -936,8 +939,8 @@ class ConfigManager {
                 '元素抵抗相关属性': ['ElementFactor_Physics', 'ElementFactor_Fire', 'ElementFactor_Poison', 'ElementFactor_Electricity', 'ElementFactor_Space']
             };
             
-            // 添加mshook属性（所有类型都支持）
-            if (Object.keys(mshookFields).length > 0) {
+            // 添加mshook属性（除了item类型，因为item类型的特定属性已经使用mshook）
+            if (Object.keys(mshookFields).length > 0 && configType !== 'item') {
                 hasProps = true;
                 
                 // 创建mshook折叠面板
@@ -1638,6 +1641,115 @@ class ConfigManager {
             }
         };
         reader.readAsText(file);
+    }
+    
+    /**
+     * 处理剪贴板导入
+     */
+    handleClipboardImport() {
+        // 检查浏览器是否支持剪贴板API
+        if (!navigator.clipboard) {
+            // 创建错误通知
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
+            notification.innerHTML = `
+                <div class="font-bold">错误</div>
+                <div>您的浏览器不支持剪贴板API</div>
+            `;
+            document.body.appendChild(notification);
+            
+            // 3秒后移除通知
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+            return;
+        }
+        
+        // 从剪贴板读取文本
+        navigator.clipboard.readText()
+            .then(text => {
+                try {
+                    // 尝试解析JSON
+                    const configData = JSON.parse(text);
+                    
+                    // 检测配置类型
+                    const configType = this.detectConfigType(configData);
+                    
+                    // 生成文件名
+                    const fileName = `clipboard_import_${Date.now()}`;
+                    
+                    // 创建配置对象
+                    const newConfig = {
+                        id: Date.now().toString(),
+                        fileName: fileName,
+                        type: configType,
+                        lastModified: new Date().toISOString(),
+                        content: configData
+                    };
+
+                    // 检查是否已存在同名配置
+                    const existingIndex = this.configs.findIndex(config => config.fileName === fileName);
+                    if (existingIndex !== -1) {
+                        if (confirm(`文件名 "${fileName}" 已存在，是否覆盖？`)) {
+                            this.configs[existingIndex] = newConfig;
+                        } else {
+                            return;
+                        }
+                    } else {
+                        this.configs.push(newConfig);
+                    }
+
+                    // 保存和更新配置
+                    window.configManager.saveConfigsToStorage();
+                    window.configManager.updateConfigList();
+                    window.configManager.selectConfig(newConfig.id);
+                    
+                    // 创建成功通知
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
+                    notification.innerHTML = `
+                        <div class="font-bold">成功</div>
+                        <div>配置已从剪贴板导入</div>
+                    `;
+                    document.body.appendChild(notification);
+                    
+                    // 3秒后移除通知
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 3000);
+                } catch (error) {
+                    console.error('剪贴板导入错误:', error);
+                    // 创建错误通知
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
+                    notification.innerHTML = `
+                        <div class="font-bold">错误</div>
+                        <div>无法解析剪贴板内容</div>
+                    `;
+                    document.body.appendChild(notification);
+                    
+                    // 3秒后移除通知
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 3000);
+                }
+            })
+            .catch(error => {
+                console.error('读取剪贴板错误:', error);
+                // 创建错误通知
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
+                notification.innerHTML = `
+                    <div class="font-bold">错误</div>
+                    <div>读取剪贴板失败</div>
+                `;
+                document.body.appendChild(notification);
+                
+                // 3秒后移除通知
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            });
     }
 
     /**
