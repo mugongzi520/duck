@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配置文件管理工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        // Tailwind CSS 配置
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#6B7280',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F',
+                        info: '#86909C',
+                        light: '#F2F3F5',
+                        dark: '#1D2129'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .transition-height {
+                transition: max-height 0.3s ease-out;
+            }
+            .bg-grid {
+                background-image: radial-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light text-dark min-h-screen flex flex-col">
+    <!-- 头部导航 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex flex-wrap items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-cogs text-primary text-2xl"></i>
+                <h1 class="text-xl md:text-2xl font-bold text-primary">配置文件管理工具</h1>
+            </div>
+            <div class="flex items-center space-x-4 mt-4 md:mt-0">
+                <button id="btn-new-config" class="flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
+                    <i class="fa fa-plus mr-2"></i>
+                    <span>新建配置</span>
+                </button>
+                <button id="btn-import-config" class="flex items-center px-4 py-2 bg-white border border-gray-300 text-dark rounded-md hover:bg-gray-50 transition-colors">
+                    <i class="fa fa-upload mr-2"></i>
+                    <span>导入配置</span>
+                </button>
+                <input type="file" id="file-input" class="hidden" accept=".json">
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <main class="flex-grow container mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- 左侧配置列表 -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-sm p-4 sticky top-24">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold">配置文件列表</h2>
+                        <div class="relative">
+                            <input type="text" id="config-search" placeholder="搜索配置..." 
+                                class="px-3 py-1 text-sm border border-gray-300 rounded-md w-40 focus:outline-none focus:ring-2 focus:ring-primary/30">
+                            <i class="fa fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- 配置类型选择器 -->
+                    <div class="mb-4">
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <button class="config-type-btn px-3 py-1 text-sm bg-primary text-white rounded-full" data-type="all">
+                                全部
+                            </button>
+                            <button class="config-type-btn px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-full" data-type="weapon">
+                                枪械配置
+                            </button>
+                            <button class="config-type-btn px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-full" data-type="melee">
+                                近战武器
+                            </button>
+                            <button class="config-type-btn px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-full" data-type="ammo">
+                                子弹配置
+                            </button>
+                            <button class="config-type-btn px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-full" data-type="item">
+                                物品配置
+                            </button>
+                            <button class="config-type-btn px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-full" data-type="accessory">
+                                配件配置
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 配置文件列表 -->
+                    <div class="overflow-y-auto max-h-[calc(100vh-300px)] scrollbar-hide" id="config-list">
+                        <div class="text-center text-gray-500 py-10">
+                            <i class="fa fa-folder-open-o text-3xl mb-2"></i>
+                            <p>暂无配置文件</p>
+                            <p class="text-sm mt-1">点击"导入配置"或"新建配置"开始</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧编辑区域 -->
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-lg shadow-sm p-6" id="config-editor">
+                    <!-- 空状态 -->
+                    <div class="text-center py-16" id="empty-state">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
+                            <i class="fa fa-file-text-o text-primary text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">选择或创建配置</h3>
+                        <p class="text-gray-500 mb-6">从左侧列表中选择一个配置文件进行编辑，或点击上方按钮创建新配置</p>
+                        <div class="flex justify-center space-x-4">
+                            <button id="quick-new-config" class="px-6 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors flex items-center">
+                                <i class="fa fa-plus-circle mr-2"></i> 创建新配置
+                            </button>
+                            <button id="quick-import-config" class="px-6 py-2 bg-white border border-gray-300 text-dark rounded-md hover:bg-gray-50 transition-colors flex items-center">
+                                <i class="fa fa-upload mr-2"></i> 导入配置
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 编辑表单 (初始隐藏) -->
+                    <div class="hidden" id="editor-form">
+                        <!-- 基本信息区域 -->
+                        <div class="mb-8">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-xl font-bold" id="edit-title">编辑配置</h2>
+                                <div class="flex space-x-2">
+                                    <button id="btn-save-config" class="flex items-center px-4 py-2 bg-success text-white rounded-md hover:bg-success/90 transition-colors">
+                                        <i class="fa fa-save mr-2"></i>
+                                        <span>保存</span>
+                                    </button>
+                                    <button id="btn-export-config" class="flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
+                                        <i class="fa fa-download mr-2"></i>
+                                        <span>导出</span>
+                                    </button>
+                                    <button id="btn-copy-to-clipboard" class="flex items-center px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors">
+                                        <i class="fa fa-copy mr-2"></i>
+                                        <span>复制到剪贴板</span>
+                                    </button>
+                                    <button id="btn-delete-config" class="flex items-center px-4 py-2 bg-white border border-danger text-danger rounded-md hover:bg-danger/5 transition-colors">
+                                        <i class="fa fa-trash mr-2"></i>
+                                        <span>删除</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">配置类型</label>
+                                    <select id="config-type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                        <option value="weapon">枪械配置</option>
+                                        <option value="melee">近战武器配置</option>
+                                        <option value="ammo">子弹配置</option>
+                                        <option value="item">物品配置</option>
+                                        <option value="accessory">配件配置</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">配置文件名</label>
+                                    <input type="text" id="config-filename" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="例如: custom_weapon_001">
+                                    <p class="text-xs text-gray-500 mt-1">文件名不需要包含 .json 后缀</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 基础属性 -->
+                        <div class="mb-8">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold">基础属性</h3>
+                                <div class="text-xs text-gray-500">所有字段均为必填项</div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">原始物品ID</label>
+                                    <div class="relative">
+                                        <input type="number" id="original-item-id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                        <div id="original-item-name" class="absolute top-0 right-0 bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-r-md pointer-events-none"></div>
+                                        <button type="button" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700" onclick="showItemSelector('original-item-id')">
+                                            <i class="fa fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">新物品ID</label>
+                                    <div class="relative">
+                                        <input type="number" id="new-item-id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                        <div id="new-item-name" class="absolute top-0 right-0 bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-r-md pointer-events-none"></div>
+                                        <button type="button" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700" onclick="showItemSelector('new-item-id')">
+                                            <i class="fa fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">显示名称</label>
+                                    <input type="text" id="display-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">本地化键名</label>
+                                    <input type="text" id="localization-key" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">本地化描述</label>
+                                    <input type="text" id="localization-desc-value" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">图标文件名</label>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="text" id="icon-filename" class="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                        <button id="btn-upload-icon" class="px-3 py-2 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors">
+                                            <i class="fa fa-image"></i>
+                                        </button>
+                                    </div>
+                                    <!-- 图标预览 -->
+                                    <div class="mt-2">
+                                        <img id="icon-preview" class="hidden w-16 h-16 object-contain border border-gray-200 rounded-md" src="" alt="图标预览">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">重量</label>
+                                    <input type="number" step="0.1" id="weight" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">价值</label>
+                                    <input type="number" id="value" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">品质</label>
+                                    <input type="number" min="1" max="9" id="quality" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                </div>
+                            </div>
+                            
+                            <!-- 标签输入 -->
+                            <div class="mt-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">标签 (多选)</label>
+                                <div class="mb-2">
+                                    <label class="block text-xs text-gray-500 mb-1">标签搜索</label>
+                                    <input type="text" id="tag-search" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="搜索标签...">
+                                </div>
+                                <div id="tags-container" class="p-2 border border-gray-300 rounded-md max-h-40 overflow-y-auto focus:outline-none focus:ring-2 focus:ring-primary/30 flex flex-wrap gap-2">
+                                    <!-- 标签选项将通过JavaScript动态添加 -->
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">提示：可通过搜索框快速筛选标签</div>
+                                <input type="hidden" id="tags" value="">
+                            </div>
+                        </div>
+                        
+                        <!-- 特定类型属性 -->
+                        <div class="mb-8">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold">特定属性</h3>
+                                <button id="btn-toggle-properties" class="text-primary text-sm hover:underline flex items-center">
+                                    <span id="toggle-properties-text">展开属性</span>
+                                    <i class="fa fa-chevron-down ml-1"></i>
+                                </button>
+                            </div>
+                            <div id="specific-properties" class="hidden">
+                                <!-- 根据配置类型动态显示 -->
+                            </div>
+                        </div>
+                        
+                        <!-- 合成配方 -->
+                        <div class="mb-8">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold">合成配方</h3>
+                                <button id="btn-toggle-crafting" class="text-primary text-sm hover:underline flex items-center">
+                                    <span id="toggle-crafting-text">添加合成配方</span>
+                                    <i class="fa fa-chevron-down ml-1"></i>
+                                </button>
+                            </div>
+                            
+                            <div id="crafting-form" class="hidden">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">合成配方ID (FormulaId)</label>
+                                        <input type="text" id="formula-id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="例如: 1140001">
+                                        <p class="text-xs text-gray-500 mt-1">必须是唯一的配方ID</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">合成所需货币</label>
+                                        <input type="number" id="crafting-money" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">产出数量</label>
+                                        <input type="number" id="result-item-amount" value="1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">合成工作台标签 高级工作台WorkBenchAdvanced</label>
+                                        <input type="text" id="crafting-tags" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="例如: WorkBenchAdvanced" value="WorkBenchAdvanced">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">合成所需物品</label>
+                                    <div id="cost-items-container">
+                                        <div class="cost-item-row flex items-center space-x-2 mb-2">
+                                            <div class="relative flex-1">
+                                                <input type="number" placeholder="物品ID" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                                <button type="button" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700" onclick="showItemSelectorForCostItem(this)">
+                                                    <i class="fa fa-search"></i>
+                                                </button>
+                                            </div>
+                                            <input type="number" placeholder="数量" class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            <button class="btn-remove-cost-item px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded-md hover:bg-gray-50 transition-colors">
+                                                <i class="fa fa-minus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button id="btn-add-cost-item" class="mt-2 px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                                        <i class="fa fa-plus mr-1"></i>
+                                        <span>添加材料</span>
+                                    </button>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">合成所需天赋</label>
+                                        <input type="text" id="require-perk" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                    </div>
+                                    <div>
+                                        <label class="flex items-center text-sm font-medium text-gray-700 mb-1">
+                                            <input type="checkbox" id="unlock-by-default" class="mr-2" checked>
+                                            默认解锁
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label class="flex items-center text-sm font-medium text-gray-700 mb-1">
+                                            <input type="checkbox" id="hide-in-index" class="mr-2">
+                                            隐藏在列表
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 保存按钮 -->
+                        <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+                            <button id="btn-cancel" class="px-6 py-2 bg-white border border-gray-300 text-dark rounded-md hover:bg-gray-50 transition-colors">
+                                取消
+                            </button>
+                            <button id="btn-save-config-bottom" class="px-6 py-2 bg-success text-white rounded-md hover:bg-success/90 transition-colors flex items-center">
+                                <i class="fa fa-save mr-2"></i>
+                                <span>保存配置</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 py-4 mt-6">
+        <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+            <p>配置文件管理工具 &copy; 2024</p>
+        </div>
+    </footer>
+
+    <!-- 物品选择器模态框 -->
+    <div id="item-selector-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold">选择物品</h3>
+                <button id="close-item-selector" class="text-gray-500 hover:text-gray-700" onclick="hideItemSelector()">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <div class="relative mb-4">
+                    <input type="text" id="item-search-input" class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="搜索物品名称或ID...">
+                    <i class="fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <div id="item-search-results" class="max-h-[40vh] overflow-y-auto border border-gray-200 rounded-md p-2">
+                    <!-- 搜索结果将通过JavaScript动态添加 -->
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-200 flex justify-end">
+                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors" onclick="hideItemSelector()">
+                    取消
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新建配置模态框 -->
+    <div id="new-config-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold">新建配置文件</h3>
+                <button id="close-new-config-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">配置类型</label>
+                <select id="new-config-type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                    <option value="weapon">枪械配置</option>
+                    <option value="melee">近战武器配置</option>
+                    <option value="ammo">子弹配置</option>
+                    <option value="item">物品配置</option>
+                    <option value="accessory">配件配置</option>
+                </select>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-1">配置文件名</label>
+                <input type="text" id="new-config-filename" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="例如: custom_weapon_001">
+                <p class="text-xs text-gray-500 mt-1">文件名不需要包含 .json 后缀</p>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-new-config" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                    取消
+                </button>
+                <button id="confirm-new-config" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
+                    创建
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图片上传模态框 -->
+    <div id="image-upload-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold">上传图标</h3>
+                <button id="close-image-upload-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-4" id="drop-area">
+                <i class="fa fa-cloud-upload text-3xl text-gray-400 mb-2"></i>
+                <p class="text-gray-500 mb-2">拖放图片到此处，或点击选择文件</p>
+                <p class="text-xs text-gray-400">支持 PNG, JPG, JPEG 格式</p>
+                <input type="file" id="image-input" class="hidden" accept="image/*">
+                <button id="btn-select-image" class="mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
+                    选择图片
+                </button>
+            </div>
+            <div id="image-preview-container" class="hidden mb-4">
+                <img id="image-preview" class="w-full h-auto rounded-md" src="">
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-image-upload" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                    取消
+                </button>
+                <button id="confirm-image-upload" class="px-4 py-2 bg-success text-white rounded-md hover:bg-success/90 transition-colors">
+                    确认上传
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知消息组件 -->
+    <div id="notification" class="fixed top-4 right-4 z-50 transform translate-x-full transition-transform duration-300">
+        <div class="bg-white rounded-lg shadow-lg p-4 flex items-center space-x-3 min-w-72">
+            <div id="notification-icon" class="text-xl"></div>
+            <div>
+                <p id="notification-title" class="font-semibold"></p>
+                <p id="notification-message" class="text-sm text-gray-600"></p>
+            </div>
+            <button id="close-notification" class="ml-auto text-gray-400 hover:text-gray-600">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 引入配置管理核心逻辑 -->
+    <script src="config-manager.js"></script>
+    
+    <script>
+        // 补充UI相关的事件监听器和配置初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化配置管理器
+            window.configManager = new ConfigManager();
+            window.configManager.initialize();
+            // 配置管理相关
+            document.getElementById('btn-new-config').addEventListener('click', showNewConfigModal);
+            document.getElementById('quick-new-config').addEventListener('click', showNewConfigModal);
+            document.getElementById('btn-import-config').addEventListener('click', () => document.getElementById('file-input').click());
+            document.getElementById('quick-import-config').addEventListener('click', () => document.getElementById('file-input').click());
+            document.getElementById('close-new-config-modal').addEventListener('click', hideNewConfigModal);
+            document.getElementById('cancel-new-config').addEventListener('click', hideNewConfigModal);
+            document.getElementById('confirm-new-config').addEventListener('click', createNewConfig);
+            document.getElementById('btn-cancel').addEventListener('click', () => window.configManager.cancelEditMode());
+            document.getElementById('config-search').addEventListener('input', filterConfigs);
+            document.querySelectorAll('.config-type-btn').forEach(btn => {
+                btn.addEventListener('click', () => filterConfigsByType(btn.dataset.type));
+            });
+
+            // 合成配方相关
+            document.getElementById('btn-toggle-crafting').addEventListener('click', toggleCraftingForm);
+            // 特定属性相关
+            document.getElementById('btn-toggle-properties').addEventListener('click', togglePropertiesForm);
+            document.getElementById('btn-add-cost-item').addEventListener('click', addCostItemRow);
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.btn-remove-cost-item')) {
+                    removeCostItemRow(e.target.closest('.cost-item-row'));
+                }
+            });
+
+            // 图片上传相关
+            document.getElementById('close-image-upload-modal').addEventListener('click', hideImageUploadModal);
+            document.getElementById('cancel-image-upload').addEventListener('click', hideImageUploadModal);
+            document.getElementById('btn-select-image').addEventListener('click', () => document.getElementById('image-input').click());
+            document.getElementById('btn-upload-icon').addEventListener('click', () => window.configManager.showImageUploadModal());
+            document.getElementById('icon-filename').addEventListener('input', () => {
+                const iconFileName = document.getElementById('icon-filename').value;
+                window.configManager.previewIcon(iconFileName);
+            });
+            
+            // 拖放图片上传
+            const dropArea = document.getElementById('drop-area');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+            dropArea.addEventListener('drop', handleDrop, false);
+        });
+
+        // 拖放相关函数
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight() {
+            document.getElementById('drop-area').classList.add('border-primary');
+        }
+
+        function unhighlight() {
+            document.getElementById('drop-area').classList.remove('border-primary');
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                const fileInput = document.getElementById('image-input');
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        }
+
+        // 模态框相关函数
+        function showNewConfigModal() {
+            document.getElementById('new-config-modal').classList.remove('hidden');
+            document.getElementById('new-config-filename').focus();
+        }
+
+        function hideNewConfigModal() {
+            document.getElementById('new-config-modal').classList.add('hidden');
+            document.getElementById('new-config-filename').value = '';
+        }
+
+        function hideImageUploadModal() {
+            document.getElementById('image-upload-modal').classList.add('hidden');
+            document.getElementById('image-preview-container').classList.add('hidden');
+            document.getElementById('image-input').value = '';
+        }
+
+        // 创建新配置
+        function createNewConfig() {
+            const configType = document.getElementById('new-config-type').value;
+            const fileName = document.getElementById('new-config-filename').value.trim();
+            
+            if (!fileName) {
+                window.configManager.showNotification('错误', '请输入配置文件名', 'error');
+                return;
+            }
+
+            // 创建新配置
+            const newConfig = {
+                id: Date.now().toString(),
+                fileName: fileName,
+                type: configType,
+                lastModified: new Date().toISOString(),
+                content: {
+                    OriginalItemId: 0,
+                    NewItemId: 0,
+                    DisplayName: '',
+                    LocalizationKey: '',
+                    LocalizationDescValue: '',
+                    Weight: 0,
+                    Value: 0,
+                    Quality: 5,
+                    Tags: [],
+                    IconFileName: '',
+                    LocalizationDesc: '_Desc'
+                }
+            };
+
+            // 添加特定类型的属性结构
+            const propsKey = window.configManager.getSpecificPropsKey(configType);
+            if (propsKey) {
+                newConfig.content[propsKey] = {};
+                const fields = window.configManager.getConfigFieldsByType(configType);
+                Object.keys(fields).forEach(key => {
+                    newConfig.content[propsKey][key] = 0;
+                });
+            }
+
+            // 添加到配置管理器
+            window.configManager.configs.push(newConfig);
+            window.configManager.saveConfigsToStorage();
+            window.configManager.updateConfigList();
+            window.configManager.selectConfig(newConfig.id);
+            hideNewConfigModal();
+            window.configManager.showNotification('成功', '新建配置成功', 'success');
+        }
+
+        // 特定属性相关函数
+        function togglePropertiesForm() {
+            const propertiesForm = document.getElementById('specific-properties');
+            const isHidden = propertiesForm.classList.contains('hidden');
+            if (isHidden) {
+                document.getElementById('toggle-properties-text').textContent = '隐藏属性';
+                propertiesForm.classList.remove('hidden');
+            } else {
+                document.getElementById('toggle-properties-text').textContent = '展开属性';
+                propertiesForm.classList.add('hidden');
+            }
+        }
+
+        // 合成配方相关函数
+        function toggleCraftingForm() {
+            const craftingForm = document.getElementById('crafting-form');
+            const isHidden = craftingForm.classList.contains('hidden');
+            if (isHidden) {
+                document.getElementById('toggle-crafting-text').textContent = '隐藏合成配方';
+                craftingForm.classList.remove('hidden');
+                // 添加默认材料行
+                if (document.querySelectorAll('.cost-item-row').length === 0) {
+                    addCostItemRow();
+                }
+            } else {
+                document.getElementById('toggle-crafting-text').textContent = '添加合成配方';
+                craftingForm.classList.add('hidden');
+            }
+        }
+
+        function addCostItemRow(itemId = '', amount = 1) {
+            const container = document.getElementById('cost-items-container');
+            const row = document.createElement('div');
+            row.className = 'cost-item-row flex items-center space-x-2 mb-2';
+            row.innerHTML = `
+                <input type="number" placeholder="物品ID" value="${itemId}" 
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                <input type="number" placeholder="数量" value="${amount}" 
+                    class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                <button class="btn-remove-cost-item px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded-md hover:bg-gray-50 transition-colors">
+                    <i class="fa fa-minus"></i>
+                </button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeCostItemRow(rowElement) {
+            if (document.querySelectorAll('.cost-item-row').length > 1) {
+                rowElement.remove();
+            }
+        }
+
+        // 配置过滤相关函数
+        function filterConfigs() {
+            const searchTerm = document.getElementById('config-search').value.toLowerCase();
+            const configManager = window.configManager;
+            
+            if (!configManager) return;
+            
+            const filteredConfigs = configManager.configs.filter(config => {
+                const configTypeInfo = configManager.getConfigTypeInfo(config.type);
+                return config.fileName.toLowerCase().includes(searchTerm) ||
+                       configTypeInfo.name.toLowerCase().includes(searchTerm);
+            });
+            
+            renderFilteredConfigs(filteredConfigs);
+        }
+
+        function filterConfigsByType(type) {
+            // 重置按钮样式
+            document.querySelectorAll('.config-type-btn').forEach(btn => {
+                btn.className = 'config-type-btn px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-full';
+            });
+            
+            // 设置选中按钮样式
+            const selectedBtn = document.querySelector(`.config-type-btn[data-type="${type}"]`);
+            selectedBtn.className = 'config-type-btn px-3 py-1 text-sm bg-primary text-white rounded-full';
+            
+            // 过滤配置
+            const configManager = window.configManager;
+            if (!configManager) return;
+            
+            let filteredConfigs;
+            if (type === 'all') {
+                filteredConfigs = configManager.configs;
+            } else {
+                filteredConfigs = configManager.configs.filter(config => config.type === type);
+            }
+            
+            renderFilteredConfigs(filteredConfigs);
+        }
+
+        function renderFilteredConfigs(filteredConfigs) {
+            const configListEl = document.getElementById('config-list');
+            if (!configListEl) return;
+            
+            configListEl.innerHTML = '';
+            
+            if (filteredConfigs.length === 0) {
+                configListEl.innerHTML = `
+                    <div class="text-center text-gray-500 py-10">
+                        <i class="fa fa-search text-3xl mb-2"></i>
+                        <p>没有找到匹配的配置</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filteredConfigs.forEach(config => {
+                const configManager = window.configManager;
+                if (!configManager) return;
+                
+                const configType = configManager.getConfigTypeInfo(config.type);
+                const configItem = document.createElement('div');
+                configItem.className = `config-item p-3 rounded-md cursor-pointer mb-1 transition-colors ${configManager.currentConfig && configManager.currentConfig.id === config.id ? 'bg-primary/10 border-l-4 border-primary' : 'hover:bg-gray-50'}`;
+                configItem.dataset.id = config.id;
+                
+                const lastModified = new Date(config.lastModified);
+                const formattedDate = lastModified.toLocaleDateString() + ' ' + lastModified.toLocaleTimeString();
+                
+                configItem.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i class="fa ${configType.icon} text-primary mr-2"></i>
+                            <div>
+                                <div class="font-medium text-sm">${config.fileName}</div>
+                                <div class="text-xs text-gray-500">${configType.name}</div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400 whitespace-nowrap">${formattedDate}</div>
+                    </div>
+                `;
+                
+                configItem.addEventListener('click', () => configManager.selectConfig(config.id));
+                configListEl.appendChild(configItem);
+            });
+        }
+    </script>
+<script>
+        // 物品数据和当前目标输入框
+        let itemsData = [];
+        let currentTargetInputId = null;
+        let currentCostItemInput = null;
+        
+        // 初始化 - 加载物品数据
+        async function initializeItemData() {
+            try {
+                const response = await fetch('6.json');
+                if (!response.ok) {
+                    throw new Error('Failed to load items data');
+                }
+                itemsData = await response.json();
+                console.log('Items data loaded successfully:', itemsData.length, 'items');
+                
+                // 为已有输入框添加事件监听器
+                document.getElementById('original-item-id').addEventListener('change', function() {
+                    updateItemNameDisplay('original-item-id', 'original-item-name');
+                });
+                
+                document.getElementById('new-item-id').addEventListener('change', function() {
+                    updateItemNameDisplay('new-item-id', 'new-item-name');
+                });
+                
+                // 为添加材料按钮添加事件监听，确保新添加的输入框也有搜索功能
+                const addCostItemBtn = document.getElementById('btn-add-cost-item');
+                if (addCostItemBtn) {
+                    addCostItemBtn.addEventListener('click', function() {
+                        // 等待DOM更新后为新添加的按钮添加事件监听
+                        setTimeout(() => {
+                            const newRow = document.querySelector('#cost-items-container .cost-item-row:last-child');
+                            if (newRow) {
+                                // 创建新的搜索按钮
+                                const inputDiv = newRow.querySelector('div.relative');
+                                if (inputDiv) {
+                                    // 移除可能存在的按钮
+                                    const existingButton = inputDiv.querySelector('button');
+                                    if (existingButton) {
+                                        existingButton.remove();
+                                    }
+                                    
+                                    // 创建新按钮
+                                    const searchBtn = document.createElement('button');
+                                    searchBtn.type = 'button';
+                                    searchBtn.className = 'absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700';
+                                    searchBtn.innerHTML = '<i class="fa fa-search"></i>';
+                                    searchBtn.onclick = function() {
+                                        showItemSelectorForCostItem(this);
+                                    };
+                                    inputDiv.appendChild(searchBtn);
+                                }
+                            }
+                        }, 10);
+                    });
+                }
+                
+                // 添加复制到剪贴板功能
+                const copyToClipboardBtn = document.getElementById('btn-copy-to-clipboard');
+                if (copyToClipboardBtn) {
+                    copyToClipboardBtn.addEventListener('click', function() {
+                        try {
+                            // 获取当前配置数据 - 完整版本
+                            const configData = {
+                                OriginalItemId: parseInt(document.getElementById('original-item-id')?.value) || 0,
+                                NewItemId: parseInt(document.getElementById('new-item-id')?.value) || 0,
+                                DisplayName: document.getElementById('display-name')?.value || '',
+                                LocalizationKey: document.getElementById('localization-key')?.value || '',
+                                LocalizationDescValue: document.getElementById('localization-desc-value')?.value || '',
+                                IconFileName: document.getElementById('icon-filename')?.value || '',
+                                Weight: parseFloat(document.getElementById('weight')?.value) || 0,
+                                Value: parseInt(document.getElementById('value')?.value) || 0,
+                                Quality: parseInt(document.getElementById('quality')?.value) || 5,
+                                Tags: document.getElementById('tags')?.value ? document.getElementById('tags').value.split(',').filter(tag => tag.trim() !== '') : [],
+                                LocalizationDesc: '_Desc'
+                            };
+                            
+                            // 添加合成配方相关字段
+                            const formulaId = document.getElementById('formula-id')?.value;
+                            const craftingMoney = document.getElementById('crafting-money')?.value;
+                            const resultItemAmount = document.getElementById('result-item-amount')?.value;
+                            const craftingTags = document.getElementById('crafting-tags')?.value;
+                            const requirePerk = document.getElementById('require-perk')?.value;
+                            const unlockByDefault = document.getElementById('unlock-by-default')?.checked;
+                            const hideInIndex = document.getElementById('hide-in-index')?.checked;
+                            
+                            // 如果存在配方数据，则添加到配置中
+                            if (formulaId || craftingMoney || resultItemAmount || craftingTags || requirePerk || unlockByDefault || hideInIndex) {
+                                // 获取材料列表
+                                const costItems = [];
+                                const costItemRows = document.querySelectorAll('#cost-items-container .cost-item-row');
+                                costItemRows.forEach(row => {
+                                    const itemIdInput = row.querySelector('input[placeholder="物品ID"]');
+                                    const amountInput = row.querySelector('input[placeholder="数量"]');
+                                    
+                                    if (itemIdInput && amountInput) {
+                                        const itemId = parseInt(itemIdInput.value);
+                                        const amount = parseInt(amountInput.value);
+                                        
+                                        if (!isNaN(itemId) && !isNaN(amount) && itemId > 0 && amount > 0) {
+                                            costItems.push({
+                                                ItemId: itemId,
+                                                Amount: amount
+                                            });
+                                        }
+                                    }
+                                });
+                                
+                                // 添加合成配方数据
+                                configData.FormulaId = formulaId || '';
+                                configData.CraftingMoney = parseInt(craftingMoney) || 0;
+                                configData.ResultItemAmount = parseInt(resultItemAmount) || 1;
+                                configData.CraftingTags = craftingTags ? [craftingTags] : [];
+                                configData.RequirePerk = requirePerk || '';
+                                configData.UnlockByDefault = unlockByDefault;
+                                configData.HideInIndex = hideInIndex;
+                                configData.CostItems = costItems;
+                            }
+                            
+                            // 转换为JSON字符串
+                            const jsonStr = JSON.stringify(configData, null, 2);
+                            
+                            // 复制到剪贴板
+                            navigator.clipboard.writeText(jsonStr).then(() => {
+                                // 显示复制成功提示
+                                const originalText = copyToClipboardBtn.innerHTML;
+                                copyToClipboardBtn.innerHTML = '<i class="fa fa-check mr-2"></i><span>已复制</span>';
+                                copyToClipboardBtn.classList.add('bg-success');
+                                copyToClipboardBtn.classList.remove('bg-gray-500');
+                                
+                                // 2秒后恢复原状
+                                setTimeout(() => {
+                                    copyToClipboardBtn.innerHTML = originalText;
+                                    copyToClipboardBtn.classList.remove('bg-success');
+                                    copyToClipboardBtn.classList.add('bg-gray-500');
+                                }, 2000);
+                            }).catch(err => {
+                                console.error('复制失败:', err);
+                                alert('复制失败，请手动复制配置内容');
+                            });
+                        } catch (error) {
+                            console.error('获取配置数据失败:', error);
+                            alert('获取配置数据失败');
+                        }
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error loading items data:', error);
+                alert('加载物品数据失败，请刷新页面重试');
+            }
+        }
+        
+        // 显示物品选择器
+        function showItemSelector(inputId) {
+            currentTargetInputId = inputId;
+            currentCostItemInput = null;
+            document.getElementById('item-selector-modal').classList.remove('hidden');
+            document.getElementById('item-search-input').focus();
+            // 显示所有物品
+            performItemSearch('');
+        }
+        
+        // 显示物品选择器（针对合成材料）
+        function showItemSelectorForCostItem(button) {
+            currentTargetInputId = null;
+            currentCostItemInput = button.closest('.cost-item-row').querySelector('input[placeholder="物品ID"]');
+            document.getElementById('item-selector-modal').classList.remove('hidden');
+            document.getElementById('item-search-input').focus();
+            // 显示所有物品
+            performItemSearch('');
+        }
+        
+        // 隐藏物品选择器
+        function hideItemSelector() {
+            document.getElementById('item-selector-modal').classList.add('hidden');
+            document.getElementById('item-search-input').value = '';
+            currentTargetInputId = null;
+            currentCostItemInput = null;
+        }
+        
+        // 执行物品搜索
+        function performItemSearch(query) {
+            const resultsContainer = document.getElementById('item-search-results');
+            resultsContainer.innerHTML = '';
+            
+            if (!query.trim()) {
+                // 显示前100个物品作为默认
+                const defaultItems = itemsData.slice(0, 100);
+                displayItems(resultsContainer, defaultItems);
+                return;
+            }
+            
+            // 搜索名称或ID
+            const searchTerm = query.toLowerCase();
+            const filteredItems = itemsData.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) || 
+                item.id.toString().includes(searchTerm)
+            );
+            
+            displayItems(resultsContainer, filteredItems);
+        }
+        
+        // 显示物品列表
+        function displayItems(container, items) {
+            if (items.length === 0) {
+                const noResult = document.createElement('div');
+                noResult.className = 'px-3 py-2 text-gray-500 text-center';
+                noResult.textContent = '未找到匹配的物品';
+                container.appendChild(noResult);
+                return;
+            }
+            
+            items.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'flex justify-between items-center px-3 py-2 hover:bg-gray-50 rounded-md cursor-pointer transition-colors';
+                itemElement.innerHTML = `
+                    <div class="font-medium">${item.name}</div>
+                    <div class="text-sm text-gray-500">ID: ${item.id}</div>
+                `;
+                itemElement.onclick = () => selectItem(item);
+                container.appendChild(itemElement);
+            });
+        }
+        
+        // 选择物品
+        function selectItem(item) {
+            if (currentTargetInputId) {
+                // 为基础属性中的输入框设置值
+                const inputElement = document.getElementById(currentTargetInputId);
+                inputElement.value = item.id;
+                
+                // 更新物品名称显示
+                const nameDisplayId = currentTargetInputId.replace('-id', '-name');
+                const nameDisplay = document.getElementById(nameDisplayId);
+                if (nameDisplay) {
+                    nameDisplay.textContent = item.name;
+                }
+            } else if (currentCostItemInput) {
+                // 为合成材料输入框设置值
+                currentCostItemInput.value = item.id;
+            }
+            
+            hideItemSelector();
+        }
+        
+        // 更新物品名称显示
+        function updateItemNameDisplay(inputId, displayId) {
+            const inputElement = document.getElementById(inputId);
+            const displayElement = document.getElementById(displayId);
+            const itemId = parseInt(inputElement.value);
+            
+            if (isNaN(itemId)) {
+                displayElement.textContent = '';
+                return;
+            }
+            
+            const item = itemsData.find(item => item.id === itemId);
+            if (item) {
+                displayElement.textContent = item.name;
+            } else {
+                displayElement.textContent = '未知物品';
+            }
+        }
+        
+        // 为物品搜索框添加事件监听
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化物品数据
+            initializeItemData();
+            
+            // 为搜索框添加输入事件
+            const searchInput = document.getElementById('item-search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    performItemSearch(this.value);
+                });
+            }
+            
+            // 为添加材料按钮添加事件监听，确保新添加的输入框也有搜索功能
+            const addCostItemBtn = document.getElementById('btn-add-cost-item');
+            if (addCostItemBtn) {
+                addCostItemBtn.addEventListener('click', function() {
+                    // 等待DOM更新后为新添加的按钮添加事件监听
+                    setTimeout(() => {
+                        const newRow = document.querySelector('#cost-items-container .cost-item-row:last-child');
+                        if (newRow) {
+                            const searchBtn = newRow.querySelector('button[onclick="showItemSelectorForCostItem(this)"]');
+                            if (searchBtn) {
+                                // 重新绑定点击事件
+                                searchBtn.onclick = function() {
+                                    showItemSelectorForCostItem(this);
+                                };
+                            }
+                        }
+                    }, 10);
+                });
+            }
+        });
+    </script>
+    </body>
+</html>
