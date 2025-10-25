@@ -889,7 +889,8 @@ class ConfigManager {
             weapon: 'WeaponProperties',
             melee: 'MeleeWeaponProperties',
             ammo: 'AmmoProperties',
-            accessory: 'AccessoryProperties'
+            accessory: 'AccessoryProperties',
+            item: 'mshook'  // 物品类型使用mshook作为属性键名
         };
         return propsMap[type];
     }
@@ -996,6 +997,64 @@ class ConfigManager {
                 'Capacity': '弹匣容量',
                 'ReloadTime': '换弹时间',
                 'FlashLight': '手电筒'
+            },
+            item: {
+                // 移动相关属性
+                'WalkSpeed': '行走速度',
+                'WalkAcc': '行走加速度',
+                'RunSpeed': '奔跑速度',
+                'RunAcc': '奔跑加速度',
+                'TurnSpeed': '转身速度',
+                'AimTurnSpeed': '瞄准转身速度',
+                'DashSpeed': '冲刺速度',
+                'DashCanControl': '冲刺时是否可以控制',
+                'Moveability': '移动能力值',
+                // 耐力相关属性
+                'Stamina': '最大耐力值',
+                'StaminaDrainRate': '耐力消耗率',
+                'StaminaRecoverRate': '耐力恢复率',
+                'StaminaRecoverTime': '耐力恢复时间',
+                // 能量和资源相关属性
+                'MaxEnergy': '最大能量值',
+                'CurrentEnergy': '当前能量值',
+                'EnergyCost': '每分钟能量消耗',
+                'MaxWater': '最大水分值',
+                'CurrentWater': '当前水分值',
+                'WaterCost': '每分钟水分消耗',
+                'FoodGain': '食物增益',
+                'HealGain': '治疗增益',
+                'WaterEnergyRecoverMultiplier': '水分能量恢复乘数',
+                // 战斗相关属性
+                'MeleeDamageMultiplier': '近战伤害乘数',
+                'MeleeCritRateGain': '近战暴击率增益',
+                'MeleeCritDamageGain': '近战暴击伤害增益',
+                'GunDamageMultiplier': '枪械伤害乘数',
+                'ReloadSpeedGain': '装填速度增益',
+                'GunCritRateGain': '枪械暴击率增益',
+                'GunCritDamageGain': '枪械暴击伤害增益',
+                'BulletSpeedMultiplier': '子弹速度乘数',
+                'RecoilControl': '后坐力控制',
+                'GunScatterMultiplier': '枪械散射乘数',
+                'GunDistanceMultiplier': '枪械射程乘数',
+                // 感知相关属性
+                'NightVisionAbility': '夜视能力',
+                'NightVisionType': '夜视类型',
+                'HearingAbility': '听力能力',
+                'SoundVisable': '声音可见性',
+                'ViewAngle': '视野角度',
+                'ViewDistance': '视野距离',
+                'SenseRange': '感知范围',
+                'VisableDistanceFactor': '可见距离因子',
+                // 物品和装备相关属性
+                'MaxWeight': '最大重量',
+                'InventoryCapacity': '背包容量',
+                'PetCapcity': '宠物容量',
+                'StormProtection': '风暴保护',
+                'GasMask': '防毒面具（布尔值，>0.1为true）',
+                'FlashLight': '手电筒（布尔值，>0为true）',
+                // 声音相关属性
+                'WalkSoundRange': '行走声音范围',
+                'RunSoundRange': '奔跑声音范围'
             }
         };
         return fields[type] || {};
@@ -1106,8 +1165,10 @@ class ConfigManager {
                 Value: parseInt(document.getElementById('value').value) || 0,
                 Quality: parseInt(document.getElementById('quality').value) || 5,
                 Tags: document.getElementById('tags').value.split(',').filter(tag => tag.trim() !== ''),
+                EnergyValue: parseFloat(document.getElementById('energy-value')?.value) || 0.0,
+                WaterValue: parseFloat(document.getElementById('water-value')?.value) || 0.0,
                 IconFileName: document.getElementById('icon-filename').value || '',
-                LocalizationDesc: '_Desc'
+                LocalizationDesc: document.getElementById('localization-desc')?.value || '_Desc'
             };
             
             // 添加合成配方相关字段
@@ -1159,9 +1220,9 @@ class ConfigManager {
                 config.content[specificPropsKey] = {};
                 document.querySelectorAll('.specific-property').forEach(input => {
                     const key = input.dataset.key;
-                    const value = parseFloat(input.value) || 0;
-                    // 只有值不为0的属性才保存，减少配置文件大小
-                    if (value !== 0) {
+                    const value = parseFloat(input.value);
+                    // 只有值不是NaN且不为0的属性才保存，减少配置文件大小
+                    if (!isNaN(value) && value !== 0) {
                         config.content[specificPropsKey][key] = value;
                     }
                 });
@@ -1396,6 +1457,7 @@ class ConfigManager {
         if (configData.MeleeWeaponProperties) return 'melee';
         if (configData.AmmoProperties) return 'ammo';
         if (configData.AccessoryProperties) return 'accessory';
+        if (configData.mshook) return 'item'; // 检查是否有mshook属性
         
         // 根据字段名称推断类型
         const hasWeaponFields = Object.keys(configData).some(key => 
