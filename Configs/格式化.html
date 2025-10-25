@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物品配置生成器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#8B5CF6',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .form-input-focus {
+                @apply focus:ring-2 focus:ring-primary/50 focus:border-primary focus:outline-none;
+            }
+            .section-card {
+                @apply bg-white rounded-lg shadow-md p-5 mb-6 transition-all duration-300 hover:shadow-lg;
+            }
+            .form-label {
+                @apply block text-sm font-medium text-gray-700 mb-1;
+            }
+            .type-section {
+                @apply hidden;
+            }
+            .type-section.active {
+                @apply block;
+            }
+            .property-group {
+                @apply border border-gray-200 rounded-lg p-4 mb-4;
+            }
+            .property-group-title {
+                @apply text-base font-semibold text-gray-800 mb-3;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+    <header class="bg-gradient-to-r from-primary to-accent text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <h1 class="text-3xl font-bold flex items-center">
+                <i class="fa fa-cogs mr-3"></i>物品配置生成器
+            </h1>
+            <p class="mt-2 opacity-90">生成与JSON属性完全匹配的物品配置</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 表单区域 -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- 物品类型选择 -->
+                <section class="section-card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fa fa-list-ul text-primary mr-2"></i>物品类型
+                    </h2>
+                    <div class="flex flex-wrap gap-3">
+                        <button type="button" class="item-type-btn bg-primary text-white px-4 py-2 rounded-md" data-type="weapon">
+                            <i class="fa fa-crosshairs mr-1"></i> 武器
+                        </button>
+                        <button type="button" class="item-type-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-md" data-type="ammo">
+                            <i class="fa fa-circle mr-1"></i> 子弹
+                        </button>
+                        <button type="button" class="item-type-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-md" data-type="melee">
+                            <i class="fa fa-hand-paper-o mr-1"></i> 近战武器
+                        </button>
+                        <button type="button" class="item-type-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-md" data-type="attachment">
+                            <i class="fa fa-puzzle-piece mr-1"></i> 配件
+                        </button>
+                    </div>
+                </section>
+
+                <!-- 基本属性（所有类型通用） -->
+                <section class="section-card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fa fa-info-circle text-primary mr-2"></i>基本属性
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="form-label" for="originalItemId">原始物品ID</label>
+                            <input type="number" id="originalItemId" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 135">
+                        </div>
+                        <div>
+                            <label class="form-label" for="newItemId">新物品ID</label>
+                            <input type="number" id="newItemId" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 200001">
+                        </div>
+                        <div>
+                            <label class="form-label" for="displayName">显示名称</label>
+                            <input type="text" id="displayName" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 特制军刺">
+                        </div>
+                        <div>
+                            <label class="form-label" for="localizationKey">本地化键</label>
+                            <input type="text" id="localizationKey" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: CustomKnife">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="form-label" for="localizationDescValue">本地化描述</label>
+                            <textarea id="localizationDescValue" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 改良型军用匕首，威力巨大..."></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label" for="weight">重量</label>
+                            <input type="number" step="0.01" id="weight" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0.85">
+                        </div>
+                        <div>
+                            <label class="form-label" for="value">价值</label>
+                            <input type="number" id="value" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 15000">
+                        </div>
+                        <div>
+                            <label class="form-label" for="quality">品质</label>
+                            <input type="number" id="quality" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 6">
+                        </div>
+                        <div>
+                            <label class="form-label" for="tags">标签 (逗号分隔)</label>
+                            <input type="text" id="tags" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: Melee,Knife">
+                        </div>
+                        <div>
+                            <label class="form-label" for="iconFileName">图标文件名</label>
+                            <input type="text" id="iconFileName" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: custom_knife.png">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 武器属性 -->
+                <section id="weapon-properties" class="type-section active">
+                    <section class="section-card">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fa fa-crosshairs text-red-500 mr-2"></i>武器核心属性
+                        </h2>
+                        
+                        <div class="property-group">
+                            <h3 class="property-group-title">伤害与命中属性</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="form-label" for="DamageHash">伤害 (DamageHash)</label>
+                                    <input type="number" step="0.1" id="DamageHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 22.7">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="CritRateHash">暴击率 (CritRateHash)</label>
+                                    <input type="number" step="0.01" id="CritRateHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0.65">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="CritDamageFactorHash">暴击伤害因子 (CritDamageFactorHash)</label>
+                                    <input type="number" step="0.01" id="CritDamageFactorHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 2.55">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="PenetrateHash">穿透力 (PenetrateHash)</label>
+                                    <input type="number" step="0.1" id="PenetrateHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="ArmorPiercingHash">穿甲值 (ArmorPiercingHash)</label>
+                                    <input type="number" step="0.1" id="ArmorPiercingHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="ArmorBreakHash">破甲值 (ArmorBreakHash)</label>
+                                    <input type="number" step="0.1" id="ArmorBreakHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 3">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="property-group">
+                            <h3 class="property-group-title">弹道与射程属性</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="form-label" for="BulletDistanceHash">子弹射程 (BulletDistanceHash)</label>
+                                    <input type="number" step="0.01" id="BulletDistanceHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 192.25">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="BulletSpeedHash">子弹速度 (BulletSpeedHash)</label>
+                                    <input type="number" step="0.1" id="BulletSpeedHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 382">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="explosionDamageMultiplierHash">爆炸伤害倍率 (explosionDamageMultiplierHash)</label>
+                                    <input type="number" step="0.01" id="explosionDamageMultiplierHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 1">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="SoundRangeHash">声音范围 (SoundRangeHash)</label>
+                                    <input type="number" step="0.1" id="SoundRangeHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 41.7">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="property-group">
+                            <h3 class="property-group-title">射速与操作属性</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="form-label" for="ShootSpeedHash">射速 (ShootSpeedHash)</label>
+                                    <input type="number" step="0.001" id="ShootSpeedHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0.804">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="AdsTimeHash">开镜时间 (AdsTimeHash)</label>
+                                    <input type="number" step="0.01" id="AdsTimeHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0.3">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="ReloadTimeHash">换弹时间 (ReloadTimeHash)</label>
+                                    <input type="number" step="0.1" id="ReloadTimeHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 4">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="CapacityHash">弹匣容量 (CapacityHash)</label>
+                                    <input type="number" id="CapacityHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 10">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="property-group">
+                            <h3 class="property-group-title">移动与散射属性</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="form-label" for="MoveSpeedMultiplierHash">移动速度倍率 (MoveSpeedMultiplierHash)</label>
+                                    <input type="number" step="0.01" id="MoveSpeedMultiplierHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0.87">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="AdsWalkSpeedMultiplierHash">开镜移动速度倍率 (AdsWalkSpeedMultiplierHash)</label>
+                                    <input type="number" step="0.01" id="AdsWalkSpeedMultiplierHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0.6">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="ScatterFactorHash">散射系数 (ScatterFactorHash)</label>
+                                    <input type="number" step="0.1" id="ScatterFactorHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 36">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="ScatterRecoverHashADS">开镜散射恢复 (ScatterRecoverHashADS)</label>
+                                    <input type="number" step="0.1" id="ScatterRecoverHashADS" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 2.4">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="property-group">
+                            <h3 class="property-group-title">后坐力属性</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="form-label" for="RecoilVMinHash">垂直后坐力最小值 (RecoilVMinHash)</label>
+                                    <input type="number" step="0.001" id="RecoilVMinHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0.892">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="RecoilVMaxHash">垂直后坐力最大值 (RecoilVMaxHash)</label>
+                                    <input type="number" step="0.001" id="RecoilVMaxHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 1.108">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="RecoilHMinHash">水平后坐力最小值 (RecoilHMinHash)</label>
+                                    <input type="number" step="0.001" id="RecoilHMinHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: -0.455">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="RecoilHMaxHash">水平后坐力最大值 (RecoilHMaxHash)</label>
+                                    <input type="number" step="0.001" id="RecoilHMaxHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0.545">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="RecoilRecoverHash">后坐力恢复 (RecoilRecoverHash)</label>
+                                    <input type="number" id="RecoilRecoverHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 300">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="RecoilTimeHash">后坐力时间 (RecoilTimeHash)</label>
+                                    <input type="number" step="0.01" id="RecoilTimeHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0.1">
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </section>
+
+                <!-- 子弹属性 -->
+                <section id="ammo-properties" class="type-section">
+                    <section class="section-card">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fa fa-circle text-orange-500 mr-2"></i>子弹核心属性
+                        </h2>
+                        
+                        <div class="property-group">
+                            <h3 class="property-group-title">伤害与穿甲属性</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="form-label" for="bulletArmorPiercingGainHash">穿甲值 (bulletArmorPiercingGainHash)</label>
+                                    <input type="number" step="0.1" id="bulletArmorPiercingGainHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 5">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="BulletDamageMultiplierHash">伤害倍率 (BulletDamageMultiplierHash)</label>
+                                    <input type="number" step="0.01" id="BulletDamageMultiplierHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 1.18">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="bulletCritDamageFactorGainHash">暴击伤害因子 (bulletCritDamageFactorGainHash)</label>
+                                    <input type="number" step="0.01" id="bulletCritDamageFactorGainHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="bulletCritRateGainHash">暴击率 (bulletCritRateGainHash)</label>
+                                    <input type="number" step="0.01" id="bulletCritRateGainHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="armorBreakGainHash">破甲值 (armorBreakGainHash)</label>
+                                    <input type="number" step="0.1" id="armorBreakGainHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 3">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="BulletBleedChanceHash">流血几率 (BulletBleedChanceHash)</label>
+                                    <input type="number" step="0.01" id="BulletBleedChanceHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0.1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="property-group">
+                            <h3 class="property-group-title">弹道与消耗属性</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="form-label" for="bulletExplosionRangeHash">爆炸范围 (bulletExplosionRangeHash)</label>
+                                    <input type="number" step="0.1" id="bulletExplosionRangeHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="bulletExplosionDamageHash">爆炸伤害 (bulletExplosionDamageHash)</label>
+                                    <input type="number" step="0.1" id="bulletExplosionDamageHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="bulletDurabilityCostHash">耐久消耗 (bulletDurabilityCostHash)</label>
+                                    <input type="number" step="0.001" id="bulletDurabilityCostHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0.08">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="BulletBuffChanceMultiplierHash">Buff触发几率 (BulletBuffChanceMultiplierHash)</label>
+                                    <input type="number" step="0.01" id="BulletBuffChanceMultiplierHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0.1">
+                                </div>
+                            </div>
+                        </div>
+
+           
+                    </section>
+                </section>
+
+                <!-- 近战武器属性 -->
+                <section id="melee-properties" class="type-section">
+                    <section class="section-card">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fa fa-hand-paper-o text-brown-500 mr-2"></i>近战武器核心属性
+                        </h2>
+                        
+                        <div class="property-group">
+                            <h3 class="property-group-title">伤害与命中属性</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="form-label" for="meleeDamageHash">伤害 (DamageHash)</label>
+                                    <input type="number" id="meleeDamageHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 50">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="meleeCritRateHash">暴击率 (CritRateHash)</label>
+                                    <input type="number" step="0.01" id="meleeCritRateHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 1">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="meleeCritDamageFactorHash">暴击伤害因子 (CritDamageFactorHash)</label>
+                                    <input type="number" step="0.1" id="meleeCritDamageFactorHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 5">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="meleeArmorPiercingHash">穿甲值 (ArmorPiercingHash)</label>
+                                    <input type="number" id="meleeArmorPiercingHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 20">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="meleeBleedChanceHash">流血几率 (BleedChanceHash)</label>
+                                    <input type="number" step="0.01" id="meleeBleedChanceHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 2">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="property-group">
+                            <h3 class="property-group-title">攻击与移动属性</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="form-label" for="meleeAttackSpeedHash">攻击速度 (AttackSpeedHash)</label>
+                                    <input type="number" step="0.1" id="meleeAttackSpeedHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 15">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="meleeAttackRangeHash">攻击范围 (AttackRangeHash)</label>
+                                    <input type="number" step="0.01" id="meleeAttackRangeHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 12">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="meleeStaminaCostHash">体力消耗 (StaminaCostHash)</label>
+                                    <input type="number" step="0.1" id="meleeStaminaCostHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="meleeMoveSpeedMultiplierHash">移动速度倍率 (MoveSpeedMultiplierHash)</label>
+                                    <input type="number" step="0.01" id="meleeMoveSpeedMultiplierHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 1.1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="canBlockMelee" class="mr-2">
+                                <label for="canBlockMelee">可格挡</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="canPierceMelee" class="mr-2">
+                                <label for="canPierceMelee">可穿刺</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="isThrowableMelee" class="mr-2">
+                                <label for="isThrowableMelee">可投掷</label>
+                            </div>
+                        </div>
+                    </section>
+                </section>
+
+                <!-- 配件属性 -->
+                <section id="attachment-properties" class="type-section">
+                    <section class="section-card">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fa fa-puzzle-piece text-green-500 mr-2"></i>配件核心属性
+                        </h2>
+                        
+                        <div class="property-group">
+                            <h3 class="property-group-title">基础信息</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="form-label" for="attachmentType">配件类型</label>
+                                    <input type="text" id="attachmentType" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: Scope,Muzzle">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="compatibleWeapons">兼容武器 (逗号分隔)</label>
+                                    <input type="text" id="compatibleWeapons" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: AK47,M4A1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="property-group">
+                            <h3 class="property-group-title">武器修正属性</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="form-label" for="recoilModifierHash">后坐力修正 (RecoilModifierHash)</label>
+                                    <input type="number" step="0.01" id="recoilModifierHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: -0.3">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="accuracyModifierHash">精准度修正 (AccuracyModifierHash)</label>
+                                    <input type="number" step="0.01" id="accuracyModifierHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: -0.2">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="rangeModifierHash">射程修正 (RangeModifierHash)</label>
+                                    <input type="number" step="0.01" id="rangeModifierHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0.15">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="adsTimeModifierHash">开镜时间修正 (AdsTimeModifierHash)</label>
+                                    <input type="number" step="0.01" id="adsTimeModifierHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: -0.1">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="weightModifierHash">重量修正 (WeightModifierHash)</label>
+                                    <input type="number" step="0.01" id="weightModifierHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0.5">
+                                </div>
+                                <div>
+                                    <label class="form-label" for="soundSuppressionHash">消音效果 (SoundSuppressionHash)</label>
+                                    <input type="number" step="0.01" id="soundSuppressionHash" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 0.8">
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </section>
+
+                <!-- 合成配方（所有类型通用） -->
+                <section class="section-card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fa fa-cubes text-accent mr-2"></i>合成配方
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="form-label" for="formulaId">配方ID</label>
+                            <input type="text" id="formulaId" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: CustomKnife_Formula">
+                        </div>
+                        <div>
+                            <label class="form-label" for="craftingMoney">合成所需货币</label>
+                            <input type="number" id="craftingMoney" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: 5000">
+                        </div>
+                        <div>
+                            <label class="form-label" for="resultItemAmount">合成产出数量</label>
+                            <input type="number" id="resultItemAmount" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" value="1">
+                        </div>
+                        <div>
+                            <label class="form-label" for="requirePerk">合成所需天赋</label>
+                            <input type="text" id="requirePerk" class="w-full px-3 py-2 border border-gray-300 rounded-md form-input-focus" placeholder="例如: MeleeMastery">
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="form-label">合成所需物品</label>
+                        <div id="costItemsContainer">
+                            <div class="cost-item flex gap-2 mb-2">
+                                <input type="number" placeholder="物品ID" class="flex-1 px-3 py-2 border border-gray-300 rounded-md form-input-focus">
+                                <input type="number" placeholder="数量" class="w-24 px-3 py-2 border border-gray-300 rounded-md form-input-focus">
+                                <button type="button" class="remove-cost-item bg-red-100 text-red-600 p-2 rounded-md hover:bg-red-200">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" id="addCostItem" class="mt-2 bg-green-100 text-green-700 px-4 py-2 rounded-md hover:bg-green-200 flex items-center">
+                            <i class="fa fa-plus mr-1"></i> 添加物品
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 输出区域 -->
+            <div class="lg:col-span-1">
+                <div class="sticky top-4">
+                    <section class="section-card">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fa fa-code text-gray-700 mr-2"></i>生成的配置
+                        </h2>
+                        <div class="flex flex-col h-[calc(100vh-280px)]">
+                            <div class="flex-1 relative">
+                                <pre id="jsonOutput" class="absolute inset-0 overflow-auto p-4 bg-gray-800 text-gray-100 rounded-md text-sm"></pre>
+                            </div>
+                            <div class="mt-4 flex gap-2">
+                                <button id="generateBtn" class="flex-1 bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-md transition-colors flex items-center justify-center">
+                                    <i class="fa fa-refresh mr-2"></i> 生成JSON
+                                </button>
+                                <button id="copyBtn" class="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-md transition-colors">
+                                    <i class="fa fa-copy"></i>
+                                </button>
+                            </div>
+                            <button id="downloadBtn" class="mt-2 w-full bg-secondary hover:bg-secondary/90 text-white py-2 px-4 rounded-md transition-colors flex items-center justify-center">
+                                <i class="fa fa-download mr-2"></i> 下载配置文件
+                            </button>
+                        </div>
+                    </section>
+
+                    <section class="section-card mt-6">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fa fa-lightbulb-o text-yellow-500 mr-2"></i>使用说明
+                        </h2>
+                        <ul class="text-sm space-y-2 text-gray-700">
+                            <li><i class="fa fa-check-circle text-green-500 mr-1"></i> 选择物品类型（武器、子弹、近战武器、配件）</li>
+                            <li><i class="fa fa-check-circle text-green-500 mr-1"></i> 填写对应的Hash属性值，与游戏代码完全匹配</li>
+                            <li><i class="fa fa-check-circle text-green-500 mr-1"></i> 点击"生成JSON"按钮创建配置</li>
+                            <li><i class="fa fa-check-circle text-green-500 mr-1"></i> 复制或下载生成的配置文件</li>
+                            <li><i class="fa fa-exclamation-circle text-amber-500 mr-1"></i> 所有属性键与[Additionalmshookl]配置完全一致</li>
+                        </ul>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-dark text-white mt-12 py-6">
+        <div class="container mx-auto px-4 text-center">
+            <p>物品配置生成器 &copy; 2023</p>
+            <p class="text-sm opacity-70 mt-1">与JSON属性键完全匹配</p>
+        </div>
+    </footer>
+
+    <script>
+        // 物品类型切换
+        document.querySelectorAll('.item-type-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // 更新按钮样式
+                document.querySelectorAll('.item-type-btn').forEach(b => {
+                    b.classList.remove('bg-primary', 'text-white');
+                    b.classList.add('bg-gray-200', 'text-gray-700');
+                });
+                this.classList.remove('bg-gray-200', 'text-gray-700');
+                this.classList.add('bg-primary', 'text-white');
+                
+                // 显示对应的属性区域
+                const type = this.getAttribute('data-type');
+                document.querySelectorAll('.type-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(`${type}-properties`).classList.add('active');
+            });
+        });
+
+        // 添加合成物品行
+        document.getElementById('addCostItem').addEventListener('click', function() {
+            const container = document.getElementById('costItemsContainer');
+            const newItem = document.createElement('div');
+            newItem.className = 'cost-item flex gap-2 mb-2';
+            newItem.innerHTML = `
+                <input type="number" placeholder="物品ID" class="flex-1 px-3 py-2 border border-gray-300 rounded-md form-input-focus">
+                <input type="number" placeholder="数量" class="w-24 px-3 py-2 border border-gray-300 rounded-md form-input-focus">
+                <button type="button" class="remove-cost-item bg-red-100 text-red-600 p-2 rounded-md hover:bg-red-200">
+                    <i class="fa fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(newItem);
+            
+            // 添加删除事件
+            newItem.querySelector('.remove-cost-item').addEventListener('click', function() {
+                newItem.remove();
+            });
+        });
+
+        // 初始删除事件绑定
+        document.querySelectorAll('.remove-cost-item').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.closest('.cost-item').remove();
+            });
+        });
+
+        // 生成JSON
+        document.getElementById('generateBtn').addEventListener('click', generateJson);
+        
+        // 复制到剪贴板
+        document.getElementById('copyBtn').addEventListener('click', function() {
+            const jsonText = document.getElementById('jsonOutput').textContent;
+            navigator.clipboard.writeText(jsonText).then(() => {
+                alert('配置已复制到剪贴板');
+            }).catch(err => {
+                console.error('复制失败: ', err);
+            });
+        });
+
+        // 下载配置文件
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            const jsonText = document.getElementById('jsonOutput').textContent;
+            if (!jsonText.trim()) {
+                alert('请先生成配置');
+                return;
+            }
+            
+            const fileName = document.getElementById('localizationKey').value || 'item_config';
+            const blob = new Blob([jsonText], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${fileName}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // 自动生成示例配置
+        window.addEventListener('load', function() {
+            // 填充示例近战武器数据
+            document.getElementById('originalItemId').value = 105;
+            document.getElementById('newItemId').value = 200001;
+            document.getElementById('displayName').value = '特制军刺';
+            document.getElementById('localizationKey').value = 'CustomKnife';
+            document.getElementById('localizationDescValue').value = '改良型军用匕首，威力巨大，可轻松穿透轻型装甲，一击致命。';
+            document.getElementById('weight').value = 0.85;
+            document.getElementById('value').value = 15000;
+            document.getElementById('quality').value = 6;
+            document.getElementById('tags').value = 'Melee,Knife,Special';
+            document.getElementById('iconFileName').value = 'custom_knife.png';
+            
+            // 近战武器特有属性
+            document.getElementById('meleeDamageHash').value = 50;
+            document.getElementById('meleeCritRateHash').value = 1;
+            document.getElementById('meleeCritDamageFactorHash').value = 5;
+            document.getElementById('meleeArmorPiercingHash').value = 20;
+            document.getElementById('meleeAttackSpeedHash').value = 15;
+            document.getElementById('meleeAttackRangeHash').value = 12;
+            document.getElementById('meleeBleedChanceHash').value = 2;
+            document.getElementById('meleeMoveSpeedMultiplierHash').value = 1.1;
+            
+            // 生成示例JSON
+            generateJson();
+        });
+
+        function generateJson() {
+            // 获取当前选中的物品类型
+            let itemType = 'weapon';
+            document.querySelectorAll('.item-type-btn').forEach(btn => {
+                if (btn.classList.contains('bg-primary')) {
+                    itemType = btn.getAttribute('data-type');
+                }
+            });
+
+            // 收集基本属性
+            const config = {
+                ItemType: itemType,
+                OriginalItemId: parseInt(document.getElementById('originalItemId').value) || 0,
+                NewItemId: parseInt(document.getElementById('newItemId').value) || 0,
+                DisplayName: document.getElementById('displayName').value || '',
+                LocalizationKey: document.getElementById('localizationKey').value || '',
+                LocalizationDescValue: document.getElementById('localizationDescValue').value || '',
+                Weight: parseFloat(document.getElementById('weight').value) || 0,
+                Value: parseInt(document.getElementById('value').value) || 0,
+                Quality: parseInt(document.getElementById('quality').value) || 0,
+                Tags: document.getElementById('tags').value ? document.getElementById('tags').value.split(',').map(tag => tag.trim()) : [],
+                IconFileName: document.getElementById('iconFileName').value || '',
+                FormulaId: document.getElementById('formulaId').value || '',
+                CraftingMoney: parseInt(document.getElementById('craftingMoney').value) || 0,
+                ResultItemAmount: parseInt(document.getElementById('resultItemAmount').value) || 1,
+                RequirePerk: document.getElementById('requirePerk').value || '',
+                Additionalmshookl: {} // 存储所有Hash属性
+            };
+
+            // 根据物品类型收集特有Hash属性
+            if (itemType === 'weapon') {
+                // 武器Hash属性
+                config.Additionalmshookl = {
+                    DamageHash: parseFloat(document.getElementById('DamageHash').value) || 0,
+                    CritRateHash: parseFloat(document.getElementById('CritRateHash').value) || 0,
+                    CritDamageFactorHash: parseFloat(document.getElementById('CritDamageFactorHash').value) || 0,
+                    PenetrateHash: parseFloat(document.getElementById('PenetrateHash').value) || 0,
+                    ArmorPiercingHash: parseFloat(document.getElementById('ArmorPiercingHash').value) || 0,
+                    ArmorBreakHash: parseFloat(document.getElementById('ArmorBreakHash').value) || 0,
+                    BulletDistanceHash: parseFloat(document.getElementById('BulletDistanceHash').value) || 0,
+                    BulletSpeedHash: parseFloat(document.getElementById('BulletSpeedHash').value) || 0,
+                    explosionDamageMultiplierHash: parseFloat(document.getElementById('explosionDamageMultiplierHash').value) || 0,
+                    SoundRangeHash: parseFloat(document.getElementById('SoundRangeHash').value) || 0,
+                    ShootSpeedHash: parseFloat(document.getElementById('ShootSpeedHash').value) || 0,
+                    AdsTimeHash: parseFloat(document.getElementById('AdsTimeHash').value) || 0,
+                    ReloadTimeHash: parseFloat(document.getElementById('ReloadTimeHash').value) || 0,
+                    CapacityHash: parseInt(document.getElementById('CapacityHash').value) || 0,
+                    MoveSpeedMultiplierHash: parseFloat(document.getElementById('MoveSpeedMultiplierHash').value) || 0,
+                    AdsWalkSpeedMultiplierHash: parseFloat(document.getElementById('AdsWalkSpeedMultiplierHash').value) || 0,
+                    ScatterFactorHash: parseFloat(document.getElementById('ScatterFactorHash').value) || 0,
+                    ScatterRecoverHashADS: parseFloat(document.getElementById('ScatterRecoverHashADS').value) || 0,
+                    RecoilVMinHash: parseFloat(document.getElementById('RecoilVMinHash').value) || 0,
+                    RecoilVMaxHash: parseFloat(document.getElementById('RecoilVMaxHash').value) || 0,
+                    RecoilHMinHash: parseFloat(document.getElementById('RecoilHMinHash').value) || 0,
+                    RecoilHMaxHash: parseFloat(document.getElementById('RecoilHMaxHash').value) || 0,
+                    RecoilRecoverHash: parseFloat(document.getElementById('RecoilRecoverHash').value) || 0,
+                    RecoilTimeHash: parseFloat(document.getElementById('RecoilTimeHash').value) || 0
+                };
+            } 
+            else if (itemType === 'ammo') {
+                // 子弹Hash属性
+                config.Additionalmshookl = {
+                    bulletArmorPiercingGainHash: parseFloat(document.getElementById('bulletArmorPiercingGainHash').value) || 0,
+                    BulletDamageMultiplierHash: parseFloat(document.getElementById('BulletDamageMultiplierHash').value) || 0,
+                    bulletCritDamageFactorGainHash: parseFloat(document.getElementById('bulletCritDamageFactorGainHash').value) || 0,
+                    bulletCritRateGainHash: parseFloat(document.getElementById('bulletCritRateGainHash').value) || 0,
+                    bulletExplosionRangeHash: parseFloat(document.getElementById('bulletExplosionRangeHash').value) || 0,
+                    BulletBuffChanceMultiplierHash: parseFloat(document.getElementById('BulletBuffChanceMultiplierHash').value) || 0,
+                    BulletBleedChanceHash: parseFloat(document.getElementById('BulletBleedChanceHash').value) || 0,
+                    bulletExplosionDamageHash: parseFloat(document.getElementById('bulletExplosionDamageHash').value) || 0,
+                    armorBreakGainHash: parseFloat(document.getElementById('armorBreakGainHash').value) || 0,
+                    bulletDurabilityCostHash: parseFloat(document.getElementById('bulletDurabilityCostHash').value) || 0,
+                    IsArmorPiercing: document.getElementById('isArmorPiercingAmmo').checked,
+                    IsIncendiary: document.getElementById('isIncendiaryAmmo').checked,
+                    IsHollowPoint: document.getElementById('isHollowPointAmmo').checked
+                };
+            } 
+            else if (itemType === 'melee') {
+                // 近战武器Hash属性
+                config.Additionalmshookl = {
+                    DamageHash: parseFloat(document.getElementById('meleeDamageHash').value) || 0,
+                    CritRateHash: parseFloat(document.getElementById('meleeCritRateHash').value) || 0,
+                    CritDamageFactorHash: parseFloat(document.getElementById('meleeCritDamageFactorHash').value) || 0,
+                    ArmorPiercingHash: parseFloat(document.getElementById('meleeArmorPiercingHash').value) || 0,
+                    AttackSpeedHash: parseFloat(document.getElementById('meleeAttackSpeedHash').value) || 0,
+                    AttackRangeHash: parseFloat(document.getElementById('meleeAttackRangeHash').value) || 0,
+                    StaminaCostHash: parseFloat(document.getElementById('meleeStaminaCostHash').value) || 0,
+                    BleedChanceHash: parseFloat(document.getElementById('meleeBleedChanceHash').value) || 0,
+                    MoveSpeedMultiplierHash: parseFloat(document.getElementById('meleeMoveSpeedMultiplierHash').value) || 0,
+                    CanBlock: document.getElementById('canBlockMelee').checked,
+                    CanPierce: document.getElementById('canPierceMelee').checked,
+                    IsThrowable: document.getElementById('isThrowableMelee').checked
+                };
+            } 
+            else if (itemType === 'attachment') {
+                // 配件Hash属性
+                config.Additionalmshookl = {
+                    AttachmentType: document.getElementById('attachmentType').value || '',
+                    CompatibleWeapons: document.getElementById('compatibleWeapons').value ? document.getElementById('compatibleWeapons').value.split(',').map(weapon => weapon.trim()) : [],
+                    recoilModifierHash: parseFloat(document.getElementById('recoilModifierHash').value) || 0,
+                    accuracyModifierHash: parseFloat(document.getElementById('accuracyModifierHash').value) || 0,
+                    rangeModifierHash: parseFloat(document.getElementById('rangeModifierHash').value) || 0,
+                    adsTimeModifierHash: parseFloat(document.getElementById('adsTimeModifierHash').value) || 0,
+                    weightModifierHash: parseFloat(document.getElementById('weightModifierHash').value) || 0,
+                    soundSuppressionHash: parseFloat(document.getElementById('soundSuppressionHash').value) || 0
+                };
+            }
+
+            // 收集合成所需物品
+            const costItems = [];
+            document.querySelectorAll('.cost-item').forEach(item => {
+                const itemId = parseInt(item.querySelector('input:first-child').value);
+                const amount = parseInt(item.querySelector('input:nth-child(2)').value);
+                if (itemId && amount) {
+                    costItems.push({ ItemId: itemId, Amount: amount });
+                }
+            });
+            if (costItems.length > 0) {
+                config.CostItems = costItems;
+            }
+
+            // 过滤掉值为空或默认值的属性
+            const filteredConfig = {};
+            Object.keys(config).forEach(key => {
+                const value = config[key];
+                if (value !== '' && value !== 0 && 
+                    !(Array.isArray(value) && value.length === 0) &&
+                    !(typeof value === 'object' && value !== null && Object.keys(value).length === 0 && key !== 'ItemType')) {
+                    
+                    // 处理对象类型的属性，过滤其中的空值
+                    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                        const filteredObj = {};
+                        Object.keys(value).forEach(objKey => {
+                            const objValue = value[objKey];
+                            if (objValue !== '' && objValue !== 0 && 
+                                !(Array.isArray(objValue) && objValue.length === 0)) {
+                                filteredObj[objKey] = objValue;
+                            }
+                        });
+                        if (Object.keys(filteredObj).length > 0) {
+                            filteredConfig[key] = filteredObj;
+                        }
+                    } else {
+                        filteredConfig[key] = value;
+                    }
+                }
+            });
+
+            // 显示JSON
+            document.getElementById('jsonOutput').textContent = JSON.stringify(filteredConfig, null, 2);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+{
+  "OriginalItemId": 780,
+  "NewItemId": 100001,
+  "DisplayName": "超级狙击步枪",
+  "LocalizationKey": "CustomSniperRifle",
+  "LocalizationDescValue": "一把威力强大的定制狙击步枪，具有更远的射程和更高的精度。",
+  "Weight": 5,
+  "Value": 50000,
+  "Quality": 5,
+  "Tags": [
+    "Weapon",
+    "Gun"
+  ],
+  "IconFileName": "custom_sniper.png",
+  "ModuleRootDir": "DisplayItemValue",
+  "WeaponProperties": {
+    "DistanceMultiplier": 2.5,
+    "BulletSpeedMultiplier": 2,
+    "ADSTimeMultiplier": 0.6,
+    "ScatterRecoverADSMultiplier": 3,
+    "ShootSpeedMultiplier": 1.2,
+    "MoveSpeedMultiplierAdd": 0.15,
+    "ADSMoveSpeedMultiplierAdd": 0.2,
+    "BaseDamageMultiplier": 18,
+    "RangeAddition": 100,
+    "BulletSpeedAddition": 50,
+    "CriticalChanceMultiplier": 1.5,
+    "ReloadSpeedMultiplier": 1.3,
+	"ReloadSpeedMultiplier": 1.3,
+    "AccuracyMultiplier": 0.5
+
+  },
+  "CraftingMoney": 100000,
+  "CostItems": [
+    {
+      "ItemId": 780,
+      "Amount": 1
+    }
+  ],
+  "ResultItemAmount": 1,
+  "CraftingTags": [
+    "WorkBenchAdvanced"
+  ],
+  "RequirePerk": "",
+  "UnlockByDefault": true,
+  "HideInIndex": false,
+  "LockInDemo": false
+}

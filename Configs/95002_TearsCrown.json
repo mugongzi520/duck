@@ -1,0 +1,18 @@
+{
+  "OriginalItemId": 135,
+  "NewItemId": 95001,
+  "DisplayName": "万金泪冠",
+  "LocalizationKey": "TearsCrown",
+  "LocalizationDescValue": "巴克什三幻神之一，仅刷新于巴别塔露天区域貌似是某位退伍老兵带来的珍藏品，收藏价值拉满的顶级大红",
+  "Weight": 0.3,
+  "Value": 5000000,
+  "Quality": 9,
+  "Tags": [
+    "Luxury"
+  ],
+  "EnergyValue": 0.0,
+  "WaterValue": 0.0,
+  "UseDurability": 0.0,
+  "IconFileName": "tears_crown.png",
+  "LocalizationDesc": "TearsCrown_Desc"
+}

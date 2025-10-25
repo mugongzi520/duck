@@ -1,0 +1,32 @@
+{
+  "OriginalItemId": 169,
+  "NewItemId": 100101,
+  "DisplayName": "高能穿甲弹",
+  "LocalizationKey": "CustomAPAmmo",
+  "LocalizationDescValue": "经过特殊工艺处理的高能穿甲弹，具有极强的穿透力和伤害。",
+  "Weight": 0.1,
+  "Value": 5000,
+  "Quality": 5,
+  "Tags": ["Bullet"],
+  "IconFileName": "custom_ammo.png",
+  "AmmoProperties": {
+    "NewPierceValue": 18,
+    "NewDamageMultiplier": 18,
+    "NewCriticalDamageMultiplier": 15,
+    "NewBulletSpeedMultiplier": 13,
+    "NewRangeMultiplier": 12,
+    "NewAccuracyMultiplier": 0.1
+  },
+  "CraftingMoney": 50000,
+  "CostItems": [
+    { "ItemId": 702, "Amount": 10 },
+    { "ItemId": 120, "Amount": 5 },
+    { "ItemId": 500, "Amount": 2 }
+  ],
+  "ResultItemAmount": 50,
+  "CraftingTags": ["WorkBenchAdvanced"],
+  "RequirePerk": "",
+  "UnlockByDefault": true,
+  "HideInIndex": false,
+  "LockInDemo": false
+}
