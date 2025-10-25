@@ -261,6 +261,13 @@
                                     <label class="block text-xs text-gray-500 mb-1">标签搜索</label>
                                     <input type="text" id="tag-search" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="搜索标签...">
                                 </div>
+                                <div class="mb-2">
+                                    <label class="block text-xs text-gray-500 mb-1">添加自定义标签</label>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="custom-tag-input" class="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="输入自定义标签...">
+                                        <button type="button" id="add-custom-tag" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50">添加</button>
+                                    </div>
+                                </div>
                                 <div id="tags-container" class="p-2 border border-gray-300 rounded-md max-h-40 overflow-y-auto focus:outline-none focus:ring-2 focus:ring-primary/30 flex flex-wrap gap-2">
                                     <!-- 标签选项将通过JavaScript动态添加 -->
                                 </div>
@@ -836,65 +843,86 @@
                 if (copyToClipboardBtn) {
                     copyToClipboardBtn.addEventListener('click', function() {
                         try {
-                            // 获取当前配置数据 - 完整版本
-                            const configData = {
-                                OriginalItemId: parseInt(document.getElementById('original-item-id')?.value) || 0,
-                                NewItemId: parseInt(document.getElementById('new-item-id')?.value) || 0,
-                                DisplayName: document.getElementById('display-name')?.value || '',
-                                LocalizationKey: document.getElementById('localization-key')?.value || '',
-                                LocalizationDescValue: document.getElementById('localization-desc-value')?.value || '',
-                                IconFileName: document.getElementById('icon-filename')?.value || '',
-                                Weight: parseFloat(document.getElementById('weight')?.value) || 0,
-                                Value: parseInt(document.getElementById('value')?.value) || 0,
-                                Quality: parseInt(document.getElementById('quality')?.value) || 5,
-                                Tags: document.getElementById('tags')?.value ? document.getElementById('tags').value.split(',').filter(tag => tag.trim() !== '') : [],
-                                LocalizationDesc: '_Desc'
-                            };
+                            let jsonStr;
                             
-                            // 添加合成配方相关字段
-                            const formulaId = document.getElementById('formula-id')?.value;
-                            const craftingMoney = document.getElementById('crafting-money')?.value;
-                            const resultItemAmount = document.getElementById('result-item-amount')?.value;
-                            const craftingTags = document.getElementById('crafting-tags')?.value;
-                            const requirePerk = document.getElementById('require-perk')?.value;
-                            const unlockByDefault = document.getElementById('unlock-by-default')?.checked;
-                            const hideInIndex = document.getElementById('hide-in-index')?.checked;
-                            
-                            // 如果存在配方数据，则添加到配置中
-                            if (formulaId || craftingMoney || resultItemAmount || craftingTags || requirePerk || unlockByDefault || hideInIndex) {
-                                // 获取材料列表
-                                const costItems = [];
-                                const costItemRows = document.querySelectorAll('#cost-items-container .cost-item-row');
-                                costItemRows.forEach(row => {
-                                    const itemIdInput = row.querySelector('input[placeholder="物品ID"]');
-                                    const amountInput = row.querySelector('input[placeholder="数量"]');
-                                    
-                                    if (itemIdInput && amountInput) {
-                                        const itemId = parseInt(itemIdInput.value);
-                                        const amount = parseInt(amountInput.value);
-                                        
-                                        if (!isNaN(itemId) && !isNaN(amount) && itemId > 0 && amount > 0) {
-                                            costItems.push({
-                                                ItemId: itemId,
-                                                Amount: amount
-                                            });
-                                        }
-                                    }
-                                });
+                            // 直接使用configManager中的完整配置数据，确保与导出功能一致
+                            if (window.configManager && configManager.currentConfig && configManager.currentConfig.content) {
+                                // 转换为JSON字符串
+                                jsonStr = JSON.stringify(configManager.currentConfig.content, null, 2);
+                            } else {
+                                // 备用方案：手动构建配置数据
+                                const configData = {
+                                    OriginalItemId: parseInt(document.getElementById('original-item-id')?.value) || 0,
+                                    NewItemId: parseInt(document.getElementById('new-item-id')?.value) || 0,
+                                    DisplayName: document.getElementById('display-name')?.value || '',
+                                    LocalizationKey: document.getElementById('localization-key')?.value || '',
+                                    LocalizationDescValue: document.getElementById('localization-desc-value')?.value || '',
+                                    IconFileName: document.getElementById('icon-filename')?.value || '',
+                                    Weight: parseFloat(document.getElementById('weight')?.value) || 0,
+                                    Value: parseInt(document.getElementById('value')?.value) || 0,
+                                    Quality: parseInt(document.getElementById('quality')?.value) || 5,
+                                    Tags: document.getElementById('tags')?.value ? document.getElementById('tags').value.split(',').filter(tag => tag.trim() !== '') : [],
+                                    LocalizationDesc: '_Desc'
+                                };
                                 
-                                // 添加合成配方数据
-                                configData.FormulaId = formulaId || '';
-                                configData.CraftingMoney = parseInt(craftingMoney) || 0;
-                                configData.ResultItemAmount = parseInt(resultItemAmount) || 1;
-                                configData.CraftingTags = craftingTags ? [craftingTags] : [];
-                                configData.RequirePerk = requirePerk || '';
-                                configData.UnlockByDefault = unlockByDefault;
-                                configData.HideInIndex = hideInIndex;
-                                configData.CostItems = costItems;
+                                // 添加合成配方相关字段
+                                const formulaId = document.getElementById('formula-id')?.value;
+                                const craftingMoney = document.getElementById('crafting-money')?.value;
+                                const resultItemAmount = document.getElementById('result-item-amount')?.value;
+                                const craftingTags = document.getElementById('crafting-tags')?.value;
+                                const requirePerk = document.getElementById('require-perk')?.value;
+                                const unlockByDefault = document.getElementById('unlock-by-default')?.checked;
+                                const hideInIndex = document.getElementById('hide-in-index')?.checked;
+                                
+                                // 如果存在配方数据，则添加到配置中
+                                if (formulaId || craftingMoney || resultItemAmount || craftingTags || requirePerk || unlockByDefault || hideInIndex) {
+                                    // 获取材料列表
+                                    const costItems = [];
+                                    const costItemRows = document.querySelectorAll('#cost-items-container .cost-item-row');
+                                    costItemRows.forEach(row => {
+                                        const itemIdInput = row.querySelector('input[placeholder="物品ID"]');
+                                        const amountInput = row.querySelector('input[placeholder="数量"]');
+                                        
+                                        if (itemIdInput && amountInput) {
+                                            const itemId = parseInt(itemIdInput.value);
+                                            const amount = parseInt(amountInput.value);
+                                            
+                                            if (!isNaN(itemId) && !isNaN(amount) && itemId > 0 && amount > 0) {
+                                                costItems.push({
+                                                    ItemId: itemId,
+                                                    Amount: amount
+                                                });
+                                            }
+                                        }
+                                    });
+                                    
+                                    // 添加合成配方数据
+                                    configData.FormulaId = formulaId || '';
+                                    configData.CraftingMoney = parseInt(craftingMoney) || 0;
+                                    configData.ResultItemAmount = parseInt(resultItemAmount) || 1;
+                                    configData.CraftingTags = craftingTags ? [craftingTags] : [];
+                                    configData.RequirePerk = requirePerk || '';
+                                    configData.UnlockByDefault = unlockByDefault;
+                                    configData.HideInIndex = hideInIndex;
+                                    configData.CostItems = costItems;
+                                }
+                                
+                                // 添加特殊属性（确保包含所有重要字段）
+                                const specialPropertiesContainer = document.getElementById('special-properties');
+                                if (specialPropertiesContainer) {
+                                    const propertyInputs = specialPropertiesContainer.querySelectorAll('input[id^="prop-"]');
+                                    propertyInputs.forEach(input => {
+                                        const propName = input.id.replace('prop-', '');
+                                        const propValue = parseFloat(input.value);
+                                        if (!isNaN(propValue)) {
+                                            configData[propName] = propValue;
+                                        }
+                                    });
+                                }
+                                
+                                // 转换为JSON字符串
+                                jsonStr = JSON.stringify(configData, null, 2);
                             }
-                            
-                            // 转换为JSON字符串
-                            const jsonStr = JSON.stringify(configData, null, 2);
                             
                             // 复制到剪贴板
                             navigator.clipboard.writeText(jsonStr).then(() => {

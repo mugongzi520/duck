@@ -91,6 +91,105 @@ class ConfigManager {
     /**
      * 初始化标签数据
      */
+   initializeTagData() {
+        this.tagData = {
+            'Bullet': '子弹',
+            'Element': '元素',
+            'Accessory': '配件',
+            'Stock': '枪托',
+            'GunType_SMG': '枪械类型_冲锋枪',
+            'Weapon': '武器',
+            'Gun': '枪',
+            'GunType_BR': '枪械类型_战斗步枪',
+            'Repairable': '可修复的',
+            'Scope': '瞄准镜',
+            'Muzzle': '枪口',
+            'GunType_PST': '枪械类型_手枪',
+            'GunType_SHT': '枪械类型_霰弹枪',
+            'GunType_AR': '枪械类型_突击步枪',
+            'GunType_PWS': '枪械类型_个人武器系统',
+            'Formula': '配方',
+            'Formula_Blueprint': '配方_蓝图',
+            'DestroyOnLootBox': '开启战利品箱时销毁',
+            'Daily': '每日的',
+            'Tool': '工具',
+            'Seed': '种子',
+            'Formula_Medic': '配方_医疗',
+            'Weapon_LV1': '武器_1级',
+            'Western': '西部风格',
+            'Food': '食物',
+            'Medic': '医疗用品',
+            'Electric': '电子的',
+            'Luxury': '奢侈品',
+            'Healing': '治疗',
+            'Armor': '盔甲',
+            'Information': '信息',
+            'GunType_SNP': '枪械类型_狙击枪',
+            'Fish': '鱼',
+            'Bait': '诱饵',
+            'Earthworm': '蚯蚓',
+            'Quest': '任务',
+            'Explosive': '爆炸物',
+            'TecEquip': '科技装备',
+            'Crop': '农作物',
+            'Fish_OnlyDay': '鱼_仅白天出现',
+            'Formula_Normal': '配方_普通',
+            'Gem': '宝石',
+            'MeleeWeapon': '近战武器',
+            'DontDropOnDeadInSlot': '死亡时槽位物品不掉落',
+            'Helmat': '头盔',
+            'Special': '特殊的',
+            'Backpack': '背包',
+            'GamingConsole': '游戏主机',
+            'Magazine': '弹匣',
+            'Equipment': '装备',
+            'DecorateEquipment': '装饰性装备',
+            'LockInDemo': '演示版中锁定',
+            'Totem': '图腾',
+            'Grip': '握把',
+            'DestroyInBase': '在基地中销毁',
+            'FaceMask': '面罩',
+            'GunType_MAG': '枪械类型_机枪',
+            'Key': '钥匙',
+            'Continer': '容器',
+            'SpecialKey': '特殊钥匙',
+            'Injector': '注射器',
+            'ComputerParts_GPU': '电脑部件_显卡',
+            'Fish_OnlyNight': '鱼_仅夜间出现',
+            'FcController': 'FC控制器',
+            'Shit': '粪便',
+            'Computer': '电脑',
+            'Material': '材料',
+            'Fish_OnlySunDay': '鱼_仅晴天出现',
+            'Fish_OnlyRainDay': '鱼_仅雨天出现',
+            'Fish_Special': '鱼_特殊',
+            'AdvancedDebuffMode': '高级减益模式',
+            'MiniGame': '迷你游戏',
+            'GunType_Rifle': '枪械类型_步枪',
+            'GunType_Rocket': '枪械类型_火箭筒',
+            'Cash': '现金',
+            'Character': '角色',
+            'Cartridge': '弹药筒',
+            'ColorCard': '色卡',
+            'DogTag': '身份牌',
+            'Drink': '饮品',
+            'Fish_OnlyStorm': '鱼_仅暴风雨天出现',
+            'Fish_Other': '鱼_其他',
+            'Formula_Cook': '配方_烹饪',
+            'GunType_ARR': '枪械类型_突击步枪改进型',
+            'GunType_Shot': '枪械类型_霰弹枪',
+            'GunType_Sniper': '枪械类型_狙击枪',
+            'Headset': '耳机',
+            'JLab': '实验室',
+            'Misc': '杂项',
+            'Monitor': '显示器',
+            'NotForSell': '非卖品',
+            'NotSellable': '不可出售',
+            'SoulCube': '灵魂立方体',
+            'Sticky': '粘性的',
+            'NotNested': '不可嵌套'
+        };
+    }
     
     /**
      * 初始化标签选择器
@@ -136,8 +235,105 @@ class ConfigManager {
     }
     
     /**
-     * 过滤标签
+     * 添加自定义标签 - 完全重写，避免任何this上下文问题
      */
+    addCustomTag = function() {
+        console.log('addCustomTag 函数被调用');
+        
+        // 直接使用DOM操作，不依赖this
+        const customTagInput = document.getElementById('custom-tag-input');
+        const tagsContainer = document.getElementById('tags-container');
+        
+        console.log('customTagInput 元素:', customTagInput);
+        console.log('tagsContainer 元素:', tagsContainer);
+        
+        // 验证输入框存在
+        if (!customTagInput || !tagsContainer) {
+            console.error('标签输入框或容器不存在');
+            return;
+        }
+        
+        // 获取并手动清理输入值（不使用trim避免任何可能的问题）
+        const inputValue = customTagInput.value;
+        const tagText = inputValue.replace(/^\s+|\s+$/g, ''); // 手动去除首尾空格
+        
+        // 验证非空
+        if (!tagText || tagText.length === 0) {
+            console.log('标签内容为空，显示警告');
+            alert('添加成功');
+            return;
+        }
+        // 生成唯一键
+        const tagKey = 'custom_' + Date.now();
+        
+        // 直接创建DOM元素
+           const tagLabel = document.createElement('label');
+           tagLabel.className = 'inline-flex items-center px-2 py-1 rounded-full text-sm cursor-pointer bg-gray-100 hover:bg-gray-200 transition-colors';
+           tagLabel.setAttribute('data-tag-key', tagKey);
+            
+           const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'mr-1 h-3 w-3 text-primary focus:ring-primary border-gray-300 rounded';
+            // 使用用户输入的标签文本作为data-tag属性值，而不是生成的ID
+            checkbox.setAttribute('data-tag', tagText);
+            
+           const textSpan = document.createElement('span');
+           textSpan.textContent = tagText;
+           
+           // 添加删除按钮
+           const deleteButton = document.createElement('button');
+           deleteButton.type = 'button';
+           deleteButton.className = 'ml-1 text-xs text-gray-500 hover:text-red-500 focus:outline-none';
+           deleteButton.textContent = '×';
+           deleteButton.style.marginLeft = '4px';
+           deleteButton.style.fontSize = '14px';
+           deleteButton.style.cursor = 'pointer';
+           
+           // 删除按钮点击事件
+            deleteButton.onclick = function(e) {
+                e.stopPropagation(); // 阻止事件冒泡
+                tagLabel.remove(); // 移除整个标签元素
+                
+                // 更新选中标签列表
+                const selectedTags = [];
+                document.querySelectorAll('#tags-container input[type="checkbox"]:checked').forEach(cb => {
+                    selectedTags.push(cb.getAttribute('data-tag')); // 现在使用的是用户输入的实际标签内容
+                });
+                
+                const hiddenInput = document.getElementById('tags');
+                if (hiddenInput) {
+                    hiddenInput.value = selectedTags.join(',');
+                }
+            };
+            
+           tagLabel.appendChild(checkbox);
+           tagLabel.appendChild(textSpan);
+           tagLabel.appendChild(deleteButton);
+        
+        // 添加到容器
+        tagsContainer.appendChild(tagLabel);
+        
+        // 清空输入框
+        customTagInput.value = '';
+        
+        // 简单的标签选择更新逻辑
+           checkbox.onchange = function() {
+               const selectedTags = [];
+               document.querySelectorAll('#tags-container input[type="checkbox"]:checked').forEach(cb => {
+                   // 使用用户输入的实际标签内容，而不是生成的ID
+                   selectedTags.push(cb.getAttribute('data-tag'));
+               });
+                
+               const hiddenInput = document.getElementById('tags');
+               if (hiddenInput) {
+                   hiddenInput.value = selectedTags.join(',');
+                   console.log('更新选中标签:', hiddenInput.value); // 添加日志，方便调试
+               }
+           };
+        
+        // 重新聚焦
+        customTagInput.focus();
+    }
     filterTags(event) {
         const searchTerm = event.target.value.toLowerCase();
         const tagOptions = document.querySelectorAll('#tags-container label');
@@ -187,7 +383,7 @@ class ConfigManager {
                 const element = document.getElementById(elementId);
                 if (element && typeof handler === 'function') {
                     try {
-                        // 使用箭头函数避免bind问题
+                        // 确保使用正确的this上下文调用处理函数
                         element.addEventListener(eventName, (e) => handler.call(this, e));
                     } catch (err) {
                         console.warn(`绑定${elementId}的${eventName}事件失败:`, err);
@@ -205,6 +401,18 @@ class ConfigManager {
             if (tagSearch) {
                 bindEvent('tag-search', 'input', this.filterTags);
             }
+            
+            // 自定义标签添加
+            bindEvent('add-custom-tag', 'click', this.addCustomTag);
+            // 支持按Enter键添加自定义标签
+            bindEvent('custom-tag-input', 'keypress', (e) => {
+                if (e.key === 'Enter') {
+                    // 阻止默认的回车行为
+                    e.preventDefault();
+                    // 确保使用正确的this上下文调用addCustomTag
+                    this.addCustomTag.call(this);
+                }
+            });
             
             // 配置保存
             bindEvent('btn-save-config', 'click', this.saveConfig);
@@ -704,9 +912,9 @@ class ConfigManager {
                 'ArmorBreakMultiplier': '护甲破坏倍数',
                 'ExplosionDamageMultiplier': '爆炸伤害倍数',
                 'ExplosionRangeMultiplier': '爆炸范围倍数',
-                'ShotCountMultiplier': '射击次数倍数',
-                'ShotAngleMultiplier': '射击角度倍数',
-                'BurstCountMultiplier': 'Burst次数倍数',
+                'ShotCountMultiplier': '霰弹枪单发弹头数',
+                'ShotAngleMultiplier': '霰弹枪弹头散布角度',
+                'BurstCountMultiplier': '连续射击次数倍数',
                 'SoundRangeMultiplier': '声音范围倍数',
                 'ADSAimDistanceFactorMultiplier': '瞄准距离系数倍数',
                 'ScatterFactorMultiplier': '常规散布系数倍数',
@@ -718,17 +926,17 @@ class ConfigManager {
                 'ScatterGrowMultiplier': '散布增长倍数',
                 'ScatterGrowADSMultiplier': '瞄准散布增长倍数',
                 'ScatterRecoverMultiplier': '常规散布恢复倍数',
-                'RecoilVMinMultiplier': '垂直后坐力最小值倍数',
-                'RecoilVMaxMultiplier': '垂直后坐力最大值倍数',
-                'RecoilHMinMultiplier': '水平后坐力最小值倍数',
+                'RecoilVMinMultiplier': '枪械垂直后坐力最小值倍数',
+                'RecoilVMaxMultiplier': '枪械垂直后坐力最大值倍数',
+                'RecoilHMinMultiplier': '枪械水平后坐力最小值倍数',
                 'RecoilHMaxMultiplier': '水平后坐力最大值倍数',
-                'RecoilScaleVMultiplier': '垂直后坐力缩放倍数',
+                'RecoilScaleVMultiplier': '枪械垂直后坐力缩放倍数',
                 'RecoilScaleHMultiplier': '水平后坐力缩放倍数',
-                'RecoilRecoverMultiplier': '后坐力恢复倍数',
-                'RecoilTimeMultiplier': '后坐力时间倍数',
-                'RecoilRecoverTimeMultiplier': '后坐力恢复时间倍数',
-                'CapacityMultiplier': '弹匣容量倍数',
-                'BuffChanceMultiplier': '增益触发概率倍数',
+                'RecoilRecoverMultiplier': '枪械后坐力恢复倍数',
+                'RecoilTimeMultiplier': '枪械后坐力时间倍数',
+                'RecoilRecoverTimeMultiplier': '枪械后坐力恢复时间倍数',
+                'CapacityMultiplier': '枪械弹匣容量倍数',
+                'BuffChanceMultiplier': '枪械增益触发概率倍数',
                 'BulletBleedChanceMultiplier': '子弹出血概率倍数',
                 'BulletDurabilityCostMultiplier': '子弹耐久消耗倍数'
             },
@@ -1127,12 +1335,40 @@ class ConfigManager {
                     this.configs.push(newConfig);
                 }
 
-                this.saveConfigsToStorage();
-                this.updateConfigList();
-                this.selectConfig(newConfig.id);
-                this.showNotification('成功', '配置文件导入成功', 'success');
+                // 保存和更新配置
+                const configManager = window.configManager || this;
+                configManager.saveConfigsToStorage();
+                configManager.updateConfigList();
+                configManager.selectConfig(newConfig.id);
+                
+                // 不使用this，直接创建通知元素
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
+                notification.innerHTML = `
+                    <div class="font-bold">成功</div>
+                    <div>配置文件导入成功</div>
+                `;
+                document.body.appendChild(notification);
+                
+                // 3秒后移除通知
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
             } catch (error) {
-                this.showNotification('错误', '配置文件格式不正确', 'error');
+                console.error('导入配置错误:', error);
+                // 不使用this，直接创建通知元素
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
+                notification.innerHTML = `
+                    <div class="font-bold">错误</div>
+                    <div>配置文件格式不正确</div>
+                `;
+                document.body.appendChild(notification);
+                
+                // 3秒后移除通知
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
             }
         };
         reader.readAsText(file);
