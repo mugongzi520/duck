@@ -1410,11 +1410,12 @@ class ConfigManager {
                 
                 // 只有值不是NaN且不为0的属性才保存，减少配置文件大小
                 if (!isNaN(value) && value !== 0) {
-                    // 重要修改：将所有属性都保存到mshook对象中，实现合并
-                    config.content[mshookPropsKey][key] = value;
-                    
-                    // 对于非mshook属性，仍然保存到特定类型属性对象中以保持向后兼容
-                    if (propType !== 'mshook' && specificPropsKey) {
+                    // 根据propType决定保存到哪个对象
+                    if (propType === 'mshook') {
+                        // 真正的mshook属性只保存到mshook对象中
+                        config.content[mshookPropsKey][key] = value;
+                    } else if (specificPropsKey) {
+                        // 特定类型属性只保存到特定类型属性对象中
                         config.content[specificPropsKey][key] = value;
                     }
                 }
