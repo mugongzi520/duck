@@ -1054,7 +1054,7 @@ class ConfigManager {
             weapon: 'WeaponProperties',
             melee: 'MeleeWeaponProperties',
             ammo: 'AmmoProperties',
-            accessory: 'mshook',
+            accessory: 'AccessoryProperties', // 修改为AccessoryProperties以区分mshook
             item: 'mshook'  // 物品类型使用mshook作为属性键名
         };
         return propsMap[type];
@@ -1991,7 +1991,7 @@ class ConfigManager {
         if (configData.WeaponProperties) return 'weapon';
         if (configData.MeleeWeaponProperties) return 'melee';
         if (configData.AmmoProperties) return 'ammo';
-        if (configData.AccessoryProperties) return 'accessory';
+        if (configData.AccessoryProperties || configData.mshook && !configData.WeaponProperties) return 'accessory'; // 更新配件检测逻辑
         // 注意：mshook现在是所有类型都支持的属性，不再仅用于识别item类型
         // 如果没有特定属性但有mshook，则默认为item类型
         if (!configData.WeaponProperties && !configData.MeleeWeaponProperties && 
