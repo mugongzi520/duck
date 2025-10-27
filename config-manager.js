@@ -53,11 +53,10 @@ class ConfigManager {
             },
             accessory: {
                 validFields: [
-                    'ScatterRecoverADS', 'MaxScatterADS', 'ADSTime', 'ADSAimDistanceFactor',
-                    'ScatterFactorADS', 'MaxScatter', 'ScatterRecover', 'DefaultScatter',
-                    'ScatterFactor', 'RecoilScaleV', 'RecoilScaleH', 'Damage', 'CritRate',
-                    'CritDamageFactor', 'BulletSpeed', 'BulletDistance', 'ShootSpeed',
-                    'MoveSpeedMultiplier', 'SoundRange', 'Capacity', 'ReloadTime', 'FlashLight'
+                    'Damage', 'CritRate', 'CritDamageFactor', 'ADSTime',
+                    'ADSAimDistanceFactor', 'ScatterFactorADS', 'MaxScatterADS',
+                    'ScatterRecoverADS', 'AttackSpeed', 'BulletSpeed', 'ArmorPiercing',
+                    'Capacity', 'MoveSpeedMultiplier'
                 ]
             }
         };
@@ -451,6 +450,8 @@ class ConfigManager {
             
             // 剪贴板导入按钮
             bindEvent('btn-clipboard-import', 'click', this.handleClipboardImport);
+            // 复制到剪贴板按钮
+            bindEvent('btn-copy-to-clipboard', 'click', this.handleCopyToClipboard);
             // 图片上传相关
             bindEvent('btn-upload-icon', 'click', this.showImageUploadModal);
             bindEvent('confirm-image-upload', 'click', this.uploadImage);
@@ -839,7 +840,7 @@ class ConfigManager {
             
             // 获取特定类型字段映射和mshook字段映射
             const typeFields = this.getConfigFieldsByType(configType);
-            const mshookFields = this.getConfigFieldsByType('item'); // 使用item类型的字段作为mshook字段
+            const mshookFields = this.getConfigFieldsByType('mshook'); // 使用mshook类型的字段作为通用属性字段
             
             // 获取属性键名
             const propsKey = this.getSpecificPropsKey(configType);
@@ -926,21 +927,21 @@ class ConfigManager {
                 });
             }
             
-            // 创建属性分类映射
+            // 创建属性分类映射 - 根据新的mshook属性更新
             const propertyCategories = {
                 '移动相关属性': ['WalkSpeed', 'WalkAcc', 'RunSpeed', 'RunAcc', 'TurnSpeed', 'AimTurnSpeed', 'DashSpeed', 'DashCanControl', 'Moveability'],
                 '耐力相关属性': ['Stamina', 'StaminaDrainRate', 'StaminaRecoverRate', 'StaminaRecoverTime'],
                 '能量和资源相关属性': ['MaxEnergy', 'CurrentEnergy', 'EnergyCost', 'MaxWater', 'CurrentWater', 'WaterCost', 'FoodGain', 'HealGain', 'WaterEnergyRecoverMultiplier'],
+                '生命值和护甲属性': ['MaxHealth', 'BodyArmor', 'HeadArmor'],
+                '元素抵抗属性': ['ElementFactor_Physics', 'ElementFactor_Fire', 'ElementFactor_Poison', 'ElementFactor_Electricity', 'ElementFactor_Space'],
                 '战斗相关属性': ['MeleeDamageMultiplier', 'MeleeCritRateGain', 'MeleeCritDamageGain', 'GunDamageMultiplier', 'ReloadSpeedGain', 'GunCritRateGain', 'GunCritDamageGain', 'BulletSpeedMultiplier', 'RecoilControl', 'GunScatterMultiplier', 'GunDistanceMultiplier'],
                 '感知相关属性': ['NightVisionAbility', 'NightVisionType', 'HearingAbility', 'SoundVisable', 'ViewAngle', 'ViewDistance', 'SenseRange', 'VisableDistanceFactor'],
-                '物品和装备相关属性': ['MaxWeight', 'InventoryCapacity', 'PetCapcity', 'StormProtection', 'GasMask', 'FlashLight'],
-                '声音相关属性': ['WalkSoundRange', 'RunSoundRange'],
-                '生命值和护甲相关属性': ['MaxHealth', 'BodyArmor', 'HeadArmor'],
-                '元素抵抗相关属性': ['ElementFactor_Physics', 'ElementFactor_Fire', 'ElementFactor_Poison', 'ElementFactor_Electricity', 'ElementFactor_Space']
+                '物品和装备属性': ['MaxWeight', 'InventoryCapacity', 'PetCapcity', 'StormProtection', 'GasMask', 'FlashLight'],
+                '声音相关属性': ['WalkSoundRange', 'RunSoundRange']
             };
             
-            // 添加mshook属性（除了item类型，因为item类型的特定属性已经使用mshook）
-            if (Object.keys(mshookFields).length > 0 && configType !== 'item') {
+            // 添加mshook属性
+            if (Object.keys(mshookFields).length > 0) {
                 hasProps = true;
                 
                 // 创建mshook折叠面板
@@ -1053,7 +1054,7 @@ class ConfigManager {
             weapon: 'WeaponProperties',
             melee: 'MeleeWeaponProperties',
             ammo: 'AmmoProperties',
-            accessory: 'AccessoryProperties',
+            accessory: 'mshook',
             item: 'mshook'  // 物品类型使用mshook作为属性键名
         };
         return propsMap[type];
@@ -1145,31 +1146,25 @@ class ConfigManager {
                 'NewBulletSpeed': '子弹速度',
                 'NewBulletDistance': '子弹距离'
             },
+            accessory: {},
+            item: {},
             accessory: {
-                'ScatterRecoverADS': '瞄准散布恢复',
-                'MaxScatterADS': '瞄准最大散布',
-                'ADSTime': '瞄准时间',
-                'ADSAimDistanceFactor': '瞄准距离系数',
-                'ScatterFactorADS': '瞄准散布系数',
-                'MaxScatter': '常规最大散布',
-                'ScatterRecover': '常规散布恢复',
-                'DefaultScatter': '常规默认散布',
-                'ScatterFactor': '常规散布系数',
-                'RecoilScaleV': '垂直后坐力缩放',
-                'RecoilScaleH': '水平后坐力缩放',
+                // 配件属性 - 重命名现有的武器配件属性
                 'Damage': '伤害',
                 'CritRate': '暴击率',
-                'CritDamageFactor': '暴击伤害因子',
+                'CritDamageFactor': '暴击伤害倍率',
+                'ADSTime': '瞄准时间',
+                'ADSAimDistanceFactor': '瞄准距离',
+                'ScatterFactorADS': '瞄准散布',
+                'MaxScatterADS': '最大瞄准散布',
+                'ScatterRecoverADS': '瞄准扩散恢复',
+                'AttackSpeed': '攻击速度',
                 'BulletSpeed': '子弹速度',
-                'BulletDistance': '子弹距离',
-                'ShootSpeed': '射击速度',
-                'MoveSpeedMultiplier': '移动速度',
-                'SoundRange': '声音范围',
+                'ArmorPiercing': '护甲穿透',
                 'Capacity': '弹匣容量',
-                'ReloadTime': '换弹时间',
-                'FlashLight': '手电筒'
+                'MoveSpeedMultiplier': '移动速度'
             },
-            item: {
+            mshook: {
                 // 移动相关属性
                 'WalkSpeed': '行走速度',
                 'WalkAcc': '行走加速度',
@@ -1415,9 +1410,11 @@ class ConfigManager {
                 
                 // 只有值不是NaN且不为0的属性才保存，减少配置文件大小
                 if (!isNaN(value) && value !== 0) {
-                    if (propType === 'mshook') {
-                        config.content[mshookPropsKey][key] = value;
-                    } else if (specificPropsKey) {
+                    // 重要修改：将所有属性都保存到mshook对象中，实现合并
+                    config.content[mshookPropsKey][key] = value;
+                    
+                    // 对于非mshook属性，仍然保存到特定类型属性对象中以保持向后兼容
+                    if (propType !== 'mshook' && specificPropsKey) {
                         config.content[specificPropsKey][key] = value;
                     }
                 }
@@ -1643,6 +1640,176 @@ class ConfigManager {
         reader.readAsText(file);
     }
     
+    /**
+     * 获取当前配置数据
+     */
+    getCurrentConfigData() {
+        try {
+            // 如果currentConfig存在，直接返回完整的配置对象
+            if (this.currentConfig) {
+                return this.currentConfig;
+            }
+            
+            // 获取配置类型
+            const configType = document.getElementById('config-type').value;
+            
+            // 检查是否有必要的数据
+            const fileName = document.getElementById('config-filename').value;
+            if (!fileName) {
+                return null;
+            }
+            
+            // 如果没有currentConfig但有文件名，创建配置对象
+            const config = {
+                id: Date.now().toString(),
+                fileName: fileName,
+                type: configType,
+                lastModified: new Date().toISOString(),
+                content: {
+                    OriginalItemId: parseInt(document.getElementById('original-item-id').value) || 0,
+                    NewItemId: parseInt(document.getElementById('new-item-id').value) || 0,
+                    DisplayName: document.getElementById('display-name').value || '',
+                    LocalizationKey: document.getElementById('localization-key').value || '',
+                    LocalizationDescValue: document.getElementById('localization-desc-value').value || '',
+                    Weight: parseFloat(document.getElementById('weight').value) || 0,
+                    Value: parseInt(document.getElementById('value').value) || 0,
+                    Quality: parseInt(document.getElementById('quality').value) || 5,
+                    Rarity: parseInt(document.getElementById('rarity').value) || 0,
+                    MaxStackSize: parseInt(document.getElementById('max-stack-size').value) || 1,
+                    Category: document.getElementById('category').value || '',
+                    Description: document.getElementById('description').value || '',
+                    IconName: document.getElementById('icon-name').value || '',
+                    IsQuestItem: document.getElementById('is-quest-item').checked || false,
+                    IsConsumable: document.getElementById('is-consumable').checked || false,
+                    IsWeapon: document.getElementById('is-weapon').checked || false,
+                    IsArmor: document.getElementById('is-armor').checked || false,
+                    IsAccessory: document.getElementById('is-accessory').checked || false,
+                    IsAmmo: document.getElementById('is-ammo').checked || false
+                }
+            };
+            
+            // 获取特定类型属性
+            const propsKey = this.getSpecificPropsKey(configType);
+            const mshookKey = this.getMshookPropsKey();
+            
+            if (propsKey) {
+                const typeFields = this.getConfigFieldsByType(configType);
+                const typeValues = {};
+                Object.keys(typeFields).forEach(field => {
+                    const input = document.getElementById(field);
+                    if (input) {
+                        if (input.type === 'checkbox') {
+                            typeValues[field] = input.checked;
+                        } else if (input.type === 'number') {
+                            typeValues[field] = parseFloat(input.value) || 0;
+                        } else {
+                            typeValues[field] = input.value;
+                        }
+                    }
+                });
+                config.content[propsKey] = typeValues;
+            }
+            
+            // 获取mshook通用属性
+            const mshookFields = this.getConfigFieldsByType('mshook');
+            const mshookValues = {};
+            Object.keys(mshookFields).forEach(field => {
+                const input = document.getElementById(field);
+                if (input) {
+                    if (input.type === 'checkbox') {
+                        mshookValues[field] = input.checked;
+                    } else if (input.type === 'number') {
+                        mshookValues[field] = parseFloat(input.value) || 0;
+                    } else {
+                        mshookValues[field] = input.value;
+                    }
+                }
+            });
+            config.content[mshookKey] = mshookValues;
+            
+            return config;
+        } catch (error) {
+            console.error('获取当前配置数据失败:', error);
+            return null;
+        }
+    }
+
+    /**
+     * 处理复制到剪贴板
+     */
+    handleCopyToClipboard() {
+        // 检查浏览器是否支持剪贴板API
+        if (!navigator.clipboard) {
+            // 创建错误通知
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
+            notification.innerHTML = `
+                <div class="font-bold">错误</div>
+                <div>您的浏览器不支持剪贴板API</div>
+            `;
+            document.body.appendChild(notification);
+            
+            // 3秒后移除通知
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+            return;
+        }
+        
+        // 获取当前配置数据
+        const currentConfig = this.getCurrentConfigData();
+        if (!currentConfig) {
+            // 创建错误通知
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
+            notification.innerHTML = `
+                <div class="font-bold">错误</div>
+                <div>没有可复制的配置数据</div>
+            `;
+            document.body.appendChild(notification);
+            
+            // 3秒后移除通知
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+            return;
+        }
+        
+        // 只复制配置对象的content部分，避免复制多余的元数据字段
+        navigator.clipboard.writeText(JSON.stringify(currentConfig.content, null, 2))
+            .then(() => {
+                // 创建成功通知
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
+                notification.innerHTML = `
+                    <div class="font-bold">成功</div>
+                    <div>配置已复制到剪贴板</div>
+                `;
+                document.body.appendChild(notification);
+                
+                // 3秒后移除通知
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            })
+            .catch(error => {
+                console.error('复制到剪贴板失败:', error);
+                // 创建错误通知
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
+                notification.innerHTML = `
+                    <div class="font-bold">错误</div>
+                    <div>复制到剪贴板失败</div>
+                `;
+                document.body.appendChild(notification);
+                
+                // 3秒后移除通知
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            });
+    }
+
     /**
      * 处理剪贴板导入
      */

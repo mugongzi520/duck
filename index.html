@@ -516,6 +516,11 @@
         </div>
     </div>
 
+    <!-- 引入自定义样式和属性建议系统 -->
+    
+    <!-- 属性建议系统 -->
+    <script src="attribute-suggestions.js"></script>
+    
     <!-- 引入配置管理核心逻辑 -->
     <script src="config-manager.js"></script>
     
@@ -525,6 +530,11 @@
             // 初始化配置管理器
             window.configManager = new ConfigManager();
             window.configManager.initialize();
+            
+            // 初始化属性建议系统
+            if (window.attributeSuggestionSystem && typeof window.attributeSuggestionSystem.initialize === 'function') {
+                window.attributeSuggestionSystem.initialize();
+            }
             // 配置管理相关
             document.getElementById('btn-new-config').addEventListener('click', showNewConfigModal);
             document.getElementById('quick-new-config').addEventListener('click', showNewConfigModal);
@@ -804,322 +814,112 @@
             });
         }
     </script>
-<script>
-        // 物品数据和当前目标输入框
+    
+    <script>
+        // 物品选择器相关函数
+        let currentCostItemButton = null;
         let itemsData = [];
-        let currentTargetInputId = null;
-        let currentCostItemInput = null;
-        
-        // 初始化 - 加载物品数据
-        async function initializeItemData() {
-            try {
-                const response = await fetch('6.json');
-                if (!response.ok) {
-                    throw new Error('Failed to load items data');
-                }
-                itemsData = await response.json();
-                console.log('Items data loaded successfully:', itemsData.length, 'items');
-                
-                // 为已有输入框添加事件监听器
-                document.getElementById('original-item-id').addEventListener('change', function() {
-                    updateItemNameDisplay('original-item-id', 'original-item-name');
-                });
-                
-                document.getElementById('new-item-id').addEventListener('change', function() {
-                    updateItemNameDisplay('new-item-id', 'new-item-name');
-                });
-                
-                // 为添加材料按钮添加事件监听，确保新添加的输入框也有搜索功能
-                const addCostItemBtn = document.getElementById('btn-add-cost-item');
-                if (addCostItemBtn) {
-                    addCostItemBtn.addEventListener('click', function() {
-                        // 等待DOM更新后为新添加的按钮添加事件监听
-                        setTimeout(() => {
-                            const newRow = document.querySelector('#cost-items-container .cost-item-row:last-child');
-                            if (newRow) {
-                                // 创建新的搜索按钮
-                                const inputDiv = newRow.querySelector('div.relative');
-                                if (inputDiv) {
-                                    // 移除可能存在的按钮
-                                    const existingButton = inputDiv.querySelector('button');
-                                    if (existingButton) {
-                                        existingButton.remove();
-                                    }
-                                    
-                                    // 创建新按钮
-                                    const searchBtn = document.createElement('button');
-                                    searchBtn.type = 'button';
-                                    searchBtn.className = 'absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700';
-                                    searchBtn.innerHTML = '<i class="fa fa-search"></i>';
-                                    searchBtn.onclick = function() {
-                                        showItemSelectorForCostItem(this);
-                                    };
-                                    inputDiv.appendChild(searchBtn);
-                                }
-                            }
-                        }, 10);
-                    });
-                }
-                
-                // 添加复制到剪贴板功能
-                const copyToClipboardBtn = document.getElementById('btn-copy-to-clipboard');
-                if (copyToClipboardBtn) {
-                    copyToClipboardBtn.addEventListener('click', function() {
-                        try {
-                            let jsonStr;
-                            
-                            // 直接使用configManager中的完整配置数据，确保与导出功能一致
-                            if (window.configManager && configManager.currentConfig && configManager.currentConfig.content) {
-                                // 转换为JSON字符串
-                                jsonStr = JSON.stringify(configManager.currentConfig.content, null, 2);
-                            } else {
-                                // 备用方案：手动构建配置数据
-                                const configData = {
-                                    OriginalItemId: parseInt(document.getElementById('original-item-id')?.value) || 0,
-                                    NewItemId: parseInt(document.getElementById('new-item-id')?.value) || 0,
-                                    DisplayName: document.getElementById('display-name')?.value || '',
-                                    LocalizationKey: document.getElementById('localization-key')?.value || '',
-                                    LocalizationDescValue: document.getElementById('localization-desc-value')?.value || '',
-                                    IconFileName: document.getElementById('icon-filename')?.value || '',
-                                    Weight: parseFloat(document.getElementById('weight')?.value) || 0,
-                                    Value: parseInt(document.getElementById('value')?.value) || 0,
-                                    Quality: parseInt(document.getElementById('quality')?.value) || 5,
-                                    Tags: document.getElementById('tags')?.value ? document.getElementById('tags').value.split(',').filter(tag => tag.trim() !== '') : [],
-                                    LocalizationDesc: '_Desc'
-                                };
-                                
-                                // 添加合成配方相关字段
-                                const formulaId = document.getElementById('formula-id')?.value;
-                                const craftingMoney = document.getElementById('crafting-money')?.value;
-                                const resultItemAmount = document.getElementById('result-item-amount')?.value;
-                                const craftingTags = document.getElementById('crafting-tags')?.value;
-                                const requirePerk = document.getElementById('require-perk')?.value;
-                                const unlockByDefault = document.getElementById('unlock-by-default')?.checked;
-                                const hideInIndex = document.getElementById('hide-in-index')?.checked;
-                                
-                                // 如果存在配方数据，则添加到配置中
-                                if (formulaId || craftingMoney || resultItemAmount || craftingTags || requirePerk || unlockByDefault || hideInIndex) {
-                                    // 获取材料列表
-                                    const costItems = [];
-                                    const costItemRows = document.querySelectorAll('#cost-items-container .cost-item-row');
-                                    costItemRows.forEach(row => {
-                                        const itemIdInput = row.querySelector('input[placeholder="物品ID"]');
-                                        const amountInput = row.querySelector('input[placeholder="数量"]');
-                                        
-                                        if (itemIdInput && amountInput) {
-                                            const itemId = parseInt(itemIdInput.value);
-                                            const amount = parseInt(amountInput.value);
-                                            
-                                            if (!isNaN(itemId) && !isNaN(amount) && itemId > 0 && amount > 0) {
-                                                costItems.push({
-                                                    ItemId: itemId,
-                                                    Amount: amount
-                                                });
-                                            }
-                                        }
-                                    });
-                                    
-                                    // 添加合成配方数据
-                                    configData.FormulaId = formulaId || '';
-                                    configData.CraftingMoney = parseInt(craftingMoney) || 0;
-                                    configData.ResultItemAmount = parseInt(resultItemAmount) || 1;
-                                    configData.CraftingTags = craftingTags ? [craftingTags] : [];
-                                    configData.RequirePerk = requirePerk || '';
-                                    configData.UnlockByDefault = unlockByDefault;
-                                    configData.HideInIndex = hideInIndex;
-                                    configData.CostItems = costItems;
-                                }
-                                
-                                // 添加特殊属性（确保包含所有重要字段）
-                                const specialPropertiesContainer = document.getElementById('special-properties');
-                                if (specialPropertiesContainer) {
-                                    const propertyInputs = specialPropertiesContainer.querySelectorAll('input[id^="prop-"]');
-                                    propertyInputs.forEach(input => {
-                                        const propName = input.id.replace('prop-', '');
-                                        const propValue = parseFloat(input.value);
-                                        if (!isNaN(propValue)) {
-                                            configData[propName] = propValue;
-                                        }
-                                    });
-                                }
-                                
-                                // 转换为JSON字符串
-                                jsonStr = JSON.stringify(configData, null, 2);
-                            }
-                            
-                            // 复制到剪贴板
-                            navigator.clipboard.writeText(jsonStr).then(() => {
-                                // 显示复制成功提示
-                                const originalText = copyToClipboardBtn.innerHTML;
-                                copyToClipboardBtn.innerHTML = '<i class="fa fa-check mr-2"></i><span>已复制</span>';
-                                copyToClipboardBtn.classList.add('bg-success');
-                                copyToClipboardBtn.classList.remove('bg-gray-500');
-                                
-                                // 2秒后恢复原状
-                                setTimeout(() => {
-                                    copyToClipboardBtn.innerHTML = originalText;
-                                    copyToClipboardBtn.classList.remove('bg-success');
-                                    copyToClipboardBtn.classList.add('bg-gray-500');
-                                }, 2000);
-                            }).catch(err => {
-                                console.error('复制失败:', err);
-                                alert('复制失败，请手动复制配置内容');
-                            });
-                        } catch (error) {
-                            console.error('获取配置数据失败:', error);
-                            alert('获取配置数据失败');
-                        }
-                    });
-                }
-                
-            } catch (error) {
-                console.error('Error loading items data:', error);
-                alert('加载物品数据失败，请刷新页面重试');
-            }
-        }
-        
-        // 显示物品选择器
-        function showItemSelector(inputId) {
-            currentTargetInputId = inputId;
-            currentCostItemInput = null;
-            document.getElementById('item-selector-modal').classList.remove('hidden');
-            document.getElementById('item-search-input').focus();
-            // 显示所有物品
-            performItemSearch('');
-        }
-        
-        // 显示物品选择器（针对合成材料）
+
         function showItemSelectorForCostItem(button) {
-            currentTargetInputId = null;
-            currentCostItemInput = button.closest('.cost-item-row').querySelector('input[placeholder="物品ID"]');
+            currentCostItemButton = button;
+            showItemSelector();
+        }
+
+        function showItemSelector() {
             document.getElementById('item-selector-modal').classList.remove('hidden');
             document.getElementById('item-search-input').focus();
-            // 显示所有物品
-            performItemSearch('');
+            document.getElementById('item-search-input').value = '';
+            document.getElementById('item-search-results').innerHTML = '';
+            
+            // 加载物品数据
+            loadItemsData();
         }
-        
-        // 隐藏物品选择器
+
         function hideItemSelector() {
             document.getElementById('item-selector-modal').classList.add('hidden');
-            document.getElementById('item-search-input').value = '';
-            currentTargetInputId = null;
-            currentCostItemInput = null;
+            currentCostItemButton = null;
         }
-        
-        // 执行物品搜索
-        function performItemSearch(query) {
+
+        function loadItemsData() {
+            // 模拟加载物品数据，实际应该从服务器获取
+            fetch('6.json')
+                .then(response => response.json())
+                .then(data => {
+                    itemsData = data;
+                    renderItemSearchResults('');
+                })
+                .catch(error => {
+                    console.error('加载物品数据失败:', error);
+                    // 使用模拟数据作为备用
+                    itemsData = [
+                        { id: 1, name: '木材' },
+                        { id: 2, name: '石头' },
+                        { id: 3, name: '铁锭' },
+                        { id: 4, name: '金锭' },
+                        { id: 5, name: '钻石' },
+                        { id: 6, name: '皮革' }
+                    ];
+                    renderItemSearchResults('');
+                });
+        }
+
+        function renderItemSearchResults(searchTerm) {
             const resultsContainer = document.getElementById('item-search-results');
             resultsContainer.innerHTML = '';
-            
-            if (!query.trim()) {
-                // 显示前100个物品作为默认
-                const defaultItems = itemsData.slice(0, 100);
-                displayItems(resultsContainer, defaultItems);
+
+            const filteredItems = itemsData.filter(item => {
+                return item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                       item.id.toString().includes(searchTerm);
+            });
+
+            if (filteredItems.length === 0) {
+                resultsContainer.innerHTML = '<div class="text-center text-gray-500 py-4">没有找到匹配的物品</div>';
                 return;
             }
-            
-            // 搜索名称或ID
-            const searchTerm = query.toLowerCase();
-            const filteredItems = itemsData.filter(item => 
-                item.name.toLowerCase().includes(searchTerm) || 
-                item.id.toString().includes(searchTerm)
-            );
-            
-            displayItems(resultsContainer, filteredItems);
-        }
-        
-        // 显示物品列表
-        function displayItems(container, items) {
-            if (items.length === 0) {
-                const noResult = document.createElement('div');
-                noResult.className = 'px-3 py-2 text-gray-500 text-center';
-                noResult.textContent = '未找到匹配的物品';
-                container.appendChild(noResult);
-                return;
-            }
-            
-            items.forEach(item => {
+
+            filteredItems.forEach(item => {
                 const itemElement = document.createElement('div');
-                itemElement.className = 'flex justify-between items-center px-3 py-2 hover:bg-gray-50 rounded-md cursor-pointer transition-colors';
+                itemElement.className = 'p-2 border-b border-gray-100 hover:bg-gray-50 cursor-pointer';
                 itemElement.innerHTML = `
                     <div class="font-medium">${item.name}</div>
-                    <div class="text-sm text-gray-500">ID: ${item.id}</div>
+                    <div class="text-xs text-gray-500">ID: ${item.id}</div>
                 `;
-                itemElement.onclick = () => selectItem(item);
-                container.appendChild(itemElement);
+                itemElement.addEventListener('click', () => selectItem(item));
+                resultsContainer.appendChild(itemElement);
             });
         }
-        
-        // 选择物品
+
         function selectItem(item) {
-            if (currentTargetInputId) {
-                // 为基础属性中的输入框设置值
-                const inputElement = document.getElementById(currentTargetInputId);
-                inputElement.value = item.id;
-                
-                // 更新物品名称显示
-                const nameDisplayId = currentTargetInputId.replace('-id', '-name');
-                const nameDisplay = document.getElementById(nameDisplayId);
-                if (nameDisplay) {
-                    nameDisplay.textContent = item.name;
-                }
-            } else if (currentCostItemInput) {
-                // 为合成材料输入框设置值
-                currentCostItemInput.value = item.id;
+            if (currentCostItemButton) {
+                const row = currentCostItemButton.closest('.cost-item-row');
+                const itemIdInput = row.querySelector('input[type="number"]:first-child');
+                itemIdInput.value = item.id;
             }
-            
             hideItemSelector();
         }
-        
-        // 更新物品名称显示
-        function updateItemNameDisplay(inputId, displayId) {
-            const inputElement = document.getElementById(inputId);
-            const displayElement = document.getElementById(displayId);
-            const itemId = parseInt(inputElement.value);
-            
-            if (isNaN(itemId)) {
-                displayElement.textContent = '';
-                return;
-            }
-            
-            const item = itemsData.find(item => item.id === itemId);
-            if (item) {
-                displayElement.textContent = item.name;
-            } else {
-                displayElement.textContent = '未知物品';
-            }
-        }
-        
-        // 为物品搜索框添加事件监听
+
+        // 物品搜索功能
         document.addEventListener('DOMContentLoaded', function() {
-            // 初始化物品数据
-            initializeItemData();
-            
-            // 为搜索框添加输入事件
             const searchInput = document.getElementById('item-search-input');
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
-                    performItemSearch(this.value);
+                    renderItemSearchResults(this.value);
                 });
             }
-            
-            // 为添加材料按钮添加事件监听，确保新添加的输入框也有搜索功能
-            const addCostItemBtn = document.getElementById('btn-add-cost-item');
-            if (addCostItemBtn) {
-                addCostItemBtn.addEventListener('click', function() {
-                    // 等待DOM更新后为新添加的按钮添加事件监听
-                    setTimeout(() => {
-                        const newRow = document.querySelector('#cost-items-container .cost-item-row:last-child');
-                        if (newRow) {
-                            const searchBtn = newRow.querySelector('button[onclick="showItemSelectorForCostItem(this)"]');
-                            if (searchBtn) {
-                                // 重新绑定点击事件
-                                searchBtn.onclick = function() {
-                                    showItemSelectorForCostItem(this);
-                                };
-                            }
-                        }
-                    }, 10);
+
+            // 关闭物品选择器
+            const closeButton = document.getElementById('close-item-selector');
+            if (closeButton) {
+                closeButton.addEventListener('click', hideItemSelector);
+            }
+
+            // 点击模态框外部关闭
+            const modal = document.getElementById('item-selector-modal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        hideItemSelector();
+                    }
                 });
             }
         });
