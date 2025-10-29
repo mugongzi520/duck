@@ -1825,6 +1825,8 @@ class ConfigManager {
             
             // 添加分解配方相关字段 - 始终添加这些字段，确保配置完整
             config.content.EnableDecompose = document.getElementById('enable-decompose')?.checked || false;
+            config.content.DecomposeFormulaId = document.getElementById('decompose-formula-id')?.value || '';
+            config.content.DecomposeTime = parseFloat(document.getElementById('decompose-time')?.value) || 0;
             
             // 获取分解产出物品列表
             const decomposeResults = [];
