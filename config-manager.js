@@ -454,8 +454,72 @@ class ConfigManager {
             bindEvent('btn-copy-to-clipboard', 'click', this.handleCopyToClipboard);
             // 图片上传相关
             bindEvent('btn-upload-icon', 'click', this.showImageUploadModal);
-            bindEvent('confirm-image-upload', 'click', this.uploadImage);
-            bindEvent('image-input', 'change', this.previewImage);
+    bindEvent('confirm-image-upload', 'click', () => {
+        const fileInput = document.getElementById('image-input');
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            console.log('模拟上传图片:', file.name);
+            const iconFilenameInput = document.getElementById('icon-filename');
+            if (iconFilenameInput) {
+                iconFilenameInput.value = file.name;
+                this.previewIcon(file.name);
+            }
+            this.hideImageUploadModal();
+            this.showNotification('成功', '图标已上传并设置', 'success');
+        } else {
+            this.showNotification('错误', '请选择要上传的图片', 'error');
+        }
+    });
+            bindEvent('image-input', 'change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const previewContainer = document.getElementById('image-preview-container');
+                        const previewImg = document.getElementById('image-preview');
+                        if (previewContainer && previewImg) {
+                            previewImg.src = event.target.result;
+                            previewContainer.classList.remove('hidden');
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // 合成配方相关的事件监听器
+            // 为添加新配方按钮绑定事件
+            const addNewRecipeBtn = document.getElementById('btn-add-new-recipe');
+            if (addNewRecipeBtn) {
+                addNewRecipeBtn.addEventListener('click', this.addNewRecipe.bind(this));
+            }
+            
+            // 为配方中的添加材料按钮绑定事件 (使用事件委托)
+            const craftingForm = document.getElementById('crafting-form');
+            if (craftingForm) {
+                craftingForm.addEventListener('click', (e) => {
+                    // 添加材料按钮
+                    if (e.target.closest('.btn-add-cost-item')) {
+                        const costItemBtn = e.target.closest('.btn-add-cost-item');
+                        const recipeItem = costItemBtn.closest('.crafting-recipe-item');
+                        this.addCostItemRow(recipeItem);
+                    }
+                    
+                    // 移除材料按钮
+                    if (e.target.closest('.btn-remove-cost-item')) {
+                        const removeBtn = e.target.closest('.btn-remove-cost-item');
+                        const costItemRow = removeBtn.closest('.cost-item-row');
+                        const recipeItem = costItemRow.closest('.crafting-recipe-item');
+                        this.removeCostItemRow(costItemRow, recipeItem);
+                    }
+                    
+                    // 移除配方按钮
+                    if (e.target.closest('.btn-remove-recipe')) {
+                        const removeBtn = e.target.closest('.btn-remove-recipe');
+                        const recipeItem = removeBtn.closest('.crafting-recipe-item');
+                        this.removeRecipeItem(recipeItem);
+                    }
+                });
+            }
         } catch (error) {
             console.error('设置事件监听器失败:', error);
         }
@@ -481,6 +545,130 @@ class ConfigManager {
         }
     }
 
+    /**
+     * 添加新的合成配方项
+     */
+    addNewRecipe() {
+        const container = document.getElementById('crafting-recipes-container');
+        if (!container) return;
+        
+        // 获取第一个配方项作为模板
+        const template = container.querySelector('.crafting-recipe-item');
+        if (!template) return;
+        
+        // 创建新的配方项副本
+        const newRecipeItem = template.cloneNode(true);
+        
+        // 重置所有输入值
+        const inputs = newRecipeItem.querySelectorAll('input');
+        inputs.forEach(input => {
+            if (input.type === 'checkbox') {
+                input.checked = input.classList.contains('unlock-by-default'); // 只有默认解锁复选框默认为选中
+            } else {
+                input.value = input.classList.contains('result-item-amount') ? '1' : '';
+            }
+        });
+        
+        // 只保留一个空的材料行
+        const costItemsContainer = newRecipeItem.querySelector('.cost-items-container');
+        if (costItemsContainer) {
+            // 清空容器
+            costItemsContainer.innerHTML = '';
+            // 添加一个新的空材料行
+            this.addCostItemRow(newRecipeItem);
+        }
+        
+        // 添加到容器
+        container.appendChild(newRecipeItem);
+        
+        // 滚动到新添加的配方
+        newRecipeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    /**
+     * 为指定配方添加材料行
+     * @param {HTMLElement} recipeItem - 配方项元素
+     */
+    addCostItemRow(recipeItem) {
+        const container = recipeItem.querySelector('.cost-items-container');
+        if (!container) return;
+        
+        const row = document.createElement('div');
+        row.className = 'cost-item-row flex items-center space-x-2 mb-2';
+        row.innerHTML = `
+            <div class="relative flex-1">
+                <input type="number" placeholder="物品ID" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                <button type="button" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700" onclick="showItemSelectorForCostItem(this)">
+                    <i class="fa fa-search"></i>
+                </button>
+            </div>
+            <input type="number" placeholder="数量" class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" value="1">
+            <button class="btn-remove-cost-item px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded-md hover:bg-gray-50 transition-colors">
+                <i class="fa fa-minus"></i>
+            </button>
+        `;
+        
+        container.appendChild(row);
+    }
+    
+    /**
+     * 移除材料行
+     * @param {HTMLElement} costItemRow - 要移除的材料行元素
+     * @param {HTMLElement} recipeItem - 所属的配方项元素
+     */
+    removeCostItemRow(costItemRow, recipeItem) {
+        const container = recipeItem.querySelector('.cost-items-container');
+        const rows = container.querySelectorAll('.cost-item-row');
+        
+        // 确保至少保留一个材料行
+        if (rows.length > 1) {
+            costItemRow.remove();
+        } else {
+            // 如果只剩一行，则重置它的值而不是移除
+            const itemIdInput = rows[0].querySelector('input[placeholder="物品ID"]');
+            const amountInput = rows[0].querySelector('input[placeholder="数量"]');
+            if (itemIdInput) itemIdInput.value = '';
+            if (amountInput) amountInput.value = '1';
+            
+            // 提示用户不能删除最后一行
+            this.showNotification('提示', '至少需要保留一行材料', 'info');
+        }
+    }
+    
+    /**
+     * 移除配方项
+     * @param {HTMLElement} recipeItem - 要移除的配方项元素
+     */
+    removeRecipeItem(recipeItem) {
+        const container = document.getElementById('crafting-recipes-container');
+        const recipeItems = container.querySelectorAll('.crafting-recipe-item');
+        
+        // 确保至少保留一个配方项
+        if (recipeItems.length > 1) {
+            recipeItem.remove();
+        } else {
+            // 如果只剩一个配方，则重置它的值而不是移除
+            const inputs = recipeItem.querySelectorAll('input');
+            inputs.forEach(input => {
+                if (input.type === 'checkbox') {
+                    input.checked = input.classList.contains('unlock-by-default');
+                } else {
+                    input.value = input.classList.contains('result-item-amount') ? '1' : '';
+                }
+            });
+            
+            // 重置材料行
+            const costItemsContainer = recipeItem.querySelector('.cost-items-container');
+            if (costItemsContainer) {
+                costItemsContainer.innerHTML = '';
+                this.addCostItemRow(recipeItem);
+            }
+            
+            // 提示用户不能删除最后一个配方
+            this.showNotification('提示', '至少需要保留一个配方', 'info');
+        }
+    }
+    
     /**
      * 从本地存储加载配置
      */
@@ -685,17 +873,136 @@ class ConfigManager {
         document.getElementById('config-type').value = config.type || 'item';
         document.getElementById('edit-title').textContent = `编辑 ${config.fileName || '配置'}`;
         
-        // 加载基础属性
-        const content = config.content;
-        document.getElementById('original-item-id').value = content.OriginalItemId || 0;
-        document.getElementById('new-item-id').value = content.NewItemId || 0;
-        document.getElementById('display-name').value = content.DisplayName || '';
-        document.getElementById('localization-key').value = content.LocalizationKey || '';
-        document.getElementById('localization-desc-value').value = content.LocalizationDescValue || '';
-        document.getElementById('weight').value = content.Weight || 0;
-        document.getElementById('value').value = content.Value || 0;
-        document.getElementById('quality').value = content.Quality || 5;
-        document.getElementById('icon-filename').value = content.IconFileName || '';
+            // 加载基础属性
+            const content = config.content;
+            const originalItemIdEl = document.getElementById('original-item-id');
+            if (originalItemIdEl) originalItemIdEl.value = content.OriginalItemId || 0;
+            
+            const newItemIdEl = document.getElementById('new-item-id');
+            if (newItemIdEl) newItemIdEl.value = content.NewItemId || 0;
+            
+            const displayNameEl = document.getElementById('display-name');
+            if (displayNameEl) displayNameEl.value = content.DisplayName || '';
+            
+            const localizationKeyEl = document.getElementById('localization-key');
+            if (localizationKeyEl) localizationKeyEl.value = content.LocalizationKey || '';
+            
+            const localizationDescValueEl = document.getElementById('localization-desc-value');
+            if (localizationDescValueEl) localizationDescValueEl.value = content.LocalizationDescValue || '';
+            
+            const weightEl = document.getElementById('weight');
+            if (weightEl) weightEl.value = content.Weight || 0;
+            
+            const valueEl = document.getElementById('value');
+            if (valueEl) valueEl.value = content.Value || 0;
+            
+            const qualityEl = document.getElementById('quality');
+            if (qualityEl) qualityEl.value = content.Quality || 5;
+            
+            const iconFilenameEl = document.getElementById('icon-filename');
+            if (iconFilenameEl) iconFilenameEl.value = content.IconFileName || '';
+            
+            // 加载新增的基础属性 - 添加空值检查
+            const maxStackCountEl = document.getElementById('max-stack-count');
+            if (maxStackCountEl) maxStackCountEl.value = content.MaxStackCount || 1;
+            
+            const orderEl = document.getElementById('order');
+            if (orderEl) orderEl.value = content.Order || 0;
+            
+            const displayQualityEl = document.getElementById('display-quality');
+            if (displayQualityEl) displayQualityEl.value = content.DisplayQuality || 0;
+            
+            const healValueEl = document.getElementById('heal-value');
+            if (healValueEl) healValueEl.value = content.HealValue || 0;
+            
+            const useDurabilityEl = document.getElementById('use-durability');
+            if (useDurabilityEl) useDurabilityEl.value = content.UseDurability || 0;
+            
+            const durabilityUsageDrugEl = document.getElementById('durability-usage-drug');
+            if (durabilityUsageDrugEl) durabilityUsageDrugEl.value = content.DurabilityUsageDrug || 0;
+            
+            const soundKeyEl = document.getElementById('sound-key');
+            if (soundKeyEl) soundKeyEl.value = content.SoundKey || '';
+            
+            const moduleRootDirEl = document.getElementById('module-root-dir');
+            if (moduleRootDirEl) moduleRootDirEl.value = content.ModuleRootDir || '';
+            
+            const maxDurabilityEl = document.getElementById('max-durability');
+            if (maxDurabilityEl) maxDurabilityEl.value = content.MaxDurability || 0;
+            
+            const durabilityLossEl = document.getElementById('durability-loss');
+            if (durabilityLossEl) durabilityLossEl.value = content.DurabilityLoss || 0;
+            
+            const useTimeEl = document.getElementById('use-time');
+            if (useTimeEl) useTimeEl.value = content.UseTime || 0;
+            
+            // 加载食物/药物属性 - 添加空值检查
+            const energyValueEl = document.getElementById('energy-value');
+            if (energyValueEl) energyValueEl.value = content.EnergyValue || 0;
+            
+            const waterValueEl = document.getElementById('water-value');
+            if (waterValueEl) waterValueEl.value = content.WaterValue || 0;
+            
+            // 加载限制属性 - 添加空值检查
+            const stackableEl = document.getElementById('stackable');
+            if (stackableEl) stackableEl.checked = content.Stackable || false;
+            
+            const canBeSoldEl = document.getElementById('can-be-sold');
+            if (canBeSoldEl) canBeSoldEl.checked = content.CanBeSold !== false; // 默认为true
+            
+            const canDropEl = document.getElementById('can-drop');
+            if (canDropEl) canDropEl.checked = content.CanDrop !== false; // 默认为true
+            
+            const unlockByDefaultEl = document.getElementById('unlock-by-default');
+            if (unlockByDefaultEl) unlockByDefaultEl.checked = content.UnlockByDefault || false;
+            
+            const hideInIndexEl = document.getElementById('hide-in-index');
+            if (hideInIndexEl) hideInIndexEl.checked = content.HideInIndex || false;
+            
+            const lockInDemoEl = document.getElementById('lock-in-demo');
+            if (lockInDemoEl) lockInDemoEl.checked = content.LockInDemo || false;
+            
+            // 加载配件槽相关字段 - 添加空值检查
+            const extraSlotTagsEl = document.getElementById('extra-slot-tags');
+            if (extraSlotTagsEl) extraSlotTagsEl.value = content.ExtraSlotTags && content.ExtraSlotTags.length > 0 ? content.ExtraSlotTags.join(',') : '';
+            
+            const extraSlotCountEl = document.getElementById('extra-slot-count');
+            if (extraSlotCountEl) extraSlotCountEl.value = content.ExtraSlotCount || 0;
+            
+            const customSlotNamesEl = document.getElementById('custom-slot-names');
+            if (customSlotNamesEl) customSlotNamesEl.value = content.CustomSlotNames && content.CustomSlotNames.length > 0 ? content.CustomSlotNames.join(',') : '';
+            
+            // 加载分解配方相关字段 - 添加空值检查
+            const decomposeFormulaIdEl = document.getElementById('decompose-formula-id');
+            if (decomposeFormulaIdEl) decomposeFormulaIdEl.value = content.DecomposeFormulaId || '';
+            
+            const decomposeTimeEl = document.getElementById('decompose-time');
+            if (decomposeTimeEl) decomposeTimeEl.value = content.DecomposeTime || 0;
+            
+            // 加载分解产出物品列表
+            const decomposeResultsContainer = document.getElementById('decompose-results-container');
+            if (decomposeResultsContainer && content.DecomposeResults && Array.isArray(content.DecomposeResults)) {
+                // 清空现有分解结果行，只保留一行作为模板
+                const firstRow = decomposeResultsContainer.querySelector('.decompose-result-row');
+                decomposeResultsContainer.innerHTML = '';
+                
+                if (content.DecomposeResults.length > 0) {
+                    // 添加分解结果行
+                    content.DecomposeResults.forEach((result, index) => {
+                        const newRow = firstRow.cloneNode(true);
+                        const itemIdInput = newRow.querySelector('input[placeholder="物品ID"]');
+                        const amountInput = newRow.querySelector('input[placeholder="数量"]');
+                        
+                        if (itemIdInput) itemIdInput.value = result.ItemId || '';
+                        if (amountInput) amountInput.value = result.Amount || 1;
+                        
+                        decomposeResultsContainer.appendChild(newRow);
+                    });
+                } else {
+                    // 如果没有分解结果，添加一个空行
+                    decomposeResultsContainer.appendChild(firstRow);
+                }
+            }
         // 设置标签
         if (content.Tags && Array.isArray(content.Tags)) {
             this.setSelectedTags(content.Tags);
@@ -710,10 +1017,12 @@ class ConfigManager {
         this.previewIcon(content.IconFileName);
         
         // 加载合成配方数据
-        if (content.FormulaId || content.CraftingMoney || content.ResultItemAmount || 
-            content.CraftingTags || content.RequirePerk || content.UnlockByDefault !== undefined || 
-            content.HideInIndex !== undefined || content.CostItems) {
-            
+        const hasRecipeData = content.Formulas || 
+                           (content.FormulaId || content.CraftingMoney || content.ResultItemAmount || 
+                            content.CraftingTags || content.RequirePerk || content.UnlockByDefault !== undefined || 
+                            content.HideInIndex !== undefined || content.CostItems);
+        
+        if (hasRecipeData) {
             // 显示合成配方部分
             const craftingForm = document.getElementById('crafting-form');
             const toggleCraftingText = document.getElementById('toggle-crafting-text');
@@ -724,52 +1033,93 @@ class ConfigManager {
                 toggleCraftingText.textContent = '隐藏合成配方';
             }
             
-            // 填充合成配方字段
-            if (document.getElementById('formula-id')) {
-                document.getElementById('formula-id').value = content.FormulaId || '';
-            }
-            if (document.getElementById('crafting-money')) {
-                document.getElementById('crafting-money').value = content.CraftingMoney || 0;
-            }
-            if (document.getElementById('result-item-amount')) {
-                document.getElementById('result-item-amount').value = content.ResultItemAmount || 1;
-            }
-            if (document.getElementById('crafting-tags')) {
-                document.getElementById('crafting-tags').value = content.CraftingTags && content.CraftingTags.length > 0 ? content.CraftingTags[0] : '';
-            }
-            if (document.getElementById('require-perk')) {
-                document.getElementById('require-perk').value = content.RequirePerk || '';
-            }
-            if (document.getElementById('unlock-by-default')) {
-                document.getElementById('unlock-by-default').checked = content.UnlockByDefault !== undefined ? content.UnlockByDefault : true;
-            }
-            if (document.getElementById('hide-in-index')) {
-                document.getElementById('hide-in-index').checked = content.HideInIndex !== undefined ? content.HideInIndex : false;
-            }
+            const recipesContainer = document.getElementById('crafting-recipes-container');
+            const firstRecipeItem = recipesContainer.querySelector('.crafting-recipe-item');
             
-            // 加载材料列表
-            const costItemsContainer = document.getElementById('cost-items-container');
-            if (costItemsContainer && content.CostItems && Array.isArray(content.CostItems)) {
-                // 清空现有材料行，只保留一行作为模板
-                const firstRow = costItemsContainer.querySelector('.cost-item-row');
-                costItemsContainer.innerHTML = '';
+            if (!firstRecipeItem) return;
+            
+            // 清空容器，只保留一个模板
+            recipesContainer.innerHTML = '';
+            
+            // 检查是否有多个配方
+            if (content.Formulas && Array.isArray(content.Formulas) && content.Formulas.length > 0) {
+                // 处理多个配方的情况
+                content.Formulas.forEach((formula, index) => {
+                    const recipeItem = firstRecipeItem.cloneNode(true);
+                    
+                    // 填充配方字段
+                    recipeItem.querySelector('.formula-id').value = formula.FormulaId || '';
+                    recipeItem.querySelector('.crafting-money').value = formula.CraftingMoney || 0;
+                    recipeItem.querySelector('.result-item-amount').value = formula.ResultItemAmount || 1;
+                    recipeItem.querySelector('.crafting-tags').value = formula.CraftingTags && formula.CraftingTags.length > 0 ? formula.CraftingTags[0] : '';
+                    recipeItem.querySelector('.require-perk').value = formula.RequirePerk || '';
+                    recipeItem.querySelector('.unlock-by-default').checked = formula.UnlockByDefault !== undefined ? formula.UnlockByDefault : true;
+                    recipeItem.querySelector('.hide-in-index').checked = formula.HideInIndex !== undefined ? formula.HideInIndex : false;
+                    
+                    // 加载材料列表
+                    const costItemsContainer = recipeItem.querySelector('.cost-items-container');
+                    if (costItemsContainer) {
+                        const firstRow = costItemsContainer.querySelector('.cost-item-row');
+                        costItemsContainer.innerHTML = '';
+                        
+                        if (formula.CostItems && Array.isArray(formula.CostItems) && formula.CostItems.length > 0) {
+                            // 添加材料行
+                            formula.CostItems.forEach((costItem) => {
+                                const newRow = firstRow.cloneNode(true);
+                                const itemIdInput = newRow.querySelector('input[placeholder="物品ID"]');
+                                const amountInput = newRow.querySelector('input[placeholder="数量"]');
+                                
+                                if (itemIdInput) itemIdInput.value = costItem.ItemId || '';
+                                if (amountInput) amountInput.value = costItem.Amount || 1;
+                                
+                                costItemsContainer.appendChild(newRow);
+                            });
+                        } else {
+                            // 如果没有材料，添加一个空行
+                            costItemsContainer.appendChild(firstRow);
+                        }
+                    }
+                    
+                    recipesContainer.appendChild(recipeItem);
+                });
+            } else {
+                // 处理单个配方的情况（向后兼容）
+                const recipeItem = firstRecipeItem.cloneNode(true);
                 
-                if (content.CostItems.length > 0) {
-                    // 添加材料行
-                    content.CostItems.forEach((costItem, index) => {
-                        const newRow = firstRow.cloneNode(true);
-                        const itemIdInput = newRow.querySelector('input[placeholder="物品ID"]');
-                        const amountInput = newRow.querySelector('input[placeholder="数量"]');
-                        
-                        if (itemIdInput) itemIdInput.value = costItem.ItemId || '';
-                        if (amountInput) amountInput.value = costItem.Amount || 1;
-                        
-                        costItemsContainer.appendChild(newRow);
-                    });
-                } else {
-                    // 如果没有材料，添加一个空行
-                    costItemsContainer.appendChild(firstRow);
+                // 填充配方字段
+                recipeItem.querySelector('.formula-id').value = content.FormulaId || '';
+                recipeItem.querySelector('.crafting-money').value = content.CraftingMoney || 0;
+                recipeItem.querySelector('.result-item-amount').value = content.ResultItemAmount || 1;
+                recipeItem.querySelector('.crafting-tags').value = content.CraftingTags && content.CraftingTags.length > 0 ? content.CraftingTags[0] : '';
+                recipeItem.querySelector('.require-perk').value = content.RequirePerk || '';
+                recipeItem.querySelector('.unlock-by-default').checked = content.UnlockByDefault !== undefined ? content.UnlockByDefault : true;
+                recipeItem.querySelector('.hide-in-index').checked = content.HideInIndex !== undefined ? content.HideInIndex : false;
+                
+                // 加载材料列表
+                const costItemsContainer = recipeItem.querySelector('.cost-items-container');
+                if (costItemsContainer) {
+                    const firstRow = costItemsContainer.querySelector('.cost-item-row');
+                    costItemsContainer.innerHTML = '';
+                    
+                    if (content.CostItems && Array.isArray(content.CostItems) && content.CostItems.length > 0) {
+                        // 添加材料行
+                        content.CostItems.forEach((costItem) => {
+                            const newRow = firstRow.cloneNode(true);
+                            const itemIdInput = newRow.querySelector('input[placeholder="物品ID"]');
+                            const amountInput = newRow.querySelector('input[placeholder="数量"]');
+                            
+                            if (itemIdInput) itemIdInput.value = costItem.ItemId || '';
+                            if (amountInput) amountInput.value = costItem.Amount || 1;
+                            
+                            costItemsContainer.appendChild(newRow);
+                        });
+                    } else {
+                        // 如果没有材料，添加一个空行
+                        costItemsContainer.appendChild(firstRow);
+                    }
                 }
+                
+                recipesContainer.appendChild(recipeItem);
             }
         }
     }
@@ -1261,9 +1611,7 @@ class ConfigManager {
             errors.push('新物品ID必须是非负整数');
         }
         
-        if (config.content.DisplayName === undefined || config.content.DisplayName.trim() === '') {
-            errors.push('显示名称不能为空');
-        }
+     
         
         // 验证数值字段
         const numericFields = ['Weight', 'Value', 'Quality'];
@@ -1335,7 +1683,7 @@ class ConfigManager {
             config.content = {
                 OriginalItemId: parseInt(document.getElementById('original-item-id').value) || 0,
                 NewItemId: parseInt(document.getElementById('new-item-id').value) || 0,
-                DisplayName: document.getElementById('display-name').value || '',
+                DisplayName: (document.getElementById('display-name')?.value) || '',
                 LocalizationKey: document.getElementById('localization-key').value || '',
                 LocalizationDescValue: document.getElementById('localization-desc-value').value || '',
                 Weight: parseFloat(document.getElementById('weight').value) || 0,
@@ -1345,7 +1693,28 @@ class ConfigManager {
                 EnergyValue: parseFloat(document.getElementById('energy-value')?.value) || 0.0,
                 WaterValue: parseFloat(document.getElementById('water-value')?.value) || 0.0,
                 IconFileName: document.getElementById('icon-filename').value || '',
-                LocalizationDesc: document.getElementById('localization-desc')?.value || '_Desc'
+                LocalizationDesc: document.getElementById('localization-desc')?.value || '_Desc',
+                
+                // 新增的基础属性
+                MaxStackCount: parseInt(document.getElementById('max-stack-count')?.value) || 1,
+                Order: parseInt(document.getElementById('order')?.value) || 0,
+                DisplayQuality: parseInt(document.getElementById('display-quality')?.value) || 0,
+                HealValue: parseFloat(document.getElementById('heal-value')?.value) || 0,
+                UseDurability: parseFloat(document.getElementById('use-durability')?.value) || 0,
+                DurabilityUsageDrug: parseFloat(document.getElementById('durability-usage-drug')?.value) || 0,
+                SoundKey: document.getElementById('sound-key')?.value || '',
+                ModuleRootDir: document.getElementById('module-root-dir')?.value || '',
+                MaxDurability: parseFloat(document.getElementById('max-durability')?.value) || 0,
+                DurabilityLoss: parseFloat(document.getElementById('durability-loss')?.value) || 0,
+                UseTime: parseFloat(document.getElementById('use-time')?.value) || 0,
+                
+                // 限制属性
+                Stackable: document.getElementById('stackable')?.checked || false,
+                CanBeSold: document.getElementById('can-be-sold')?.checked !== false, // 默认为true
+                CanDrop: document.getElementById('can-drop')?.checked !== false, // 默认为true
+                UnlockByDefault: document.getElementById('unlock-by-default')?.checked || false,
+                HideInIndex: document.getElementById('hide-in-index')?.checked || false,
+                LockInDemo: document.getElementById('lock-in-demo')?.checked || false
             };
             
             // 添加合成配方相关字段
@@ -1379,7 +1748,10 @@ class ConfigManager {
                     }
                 });
                 
-                // 添加合成配方数据
+                // 添加合成配方数据（支持多个配方）
+                const recipeItems = document.querySelectorAll('.crafting-recipe-item');
+                
+                // 初始化主配方（单配方模式）
                 config.content.FormulaId = formulaId || '';
                 config.content.CraftingMoney = parseInt(craftingMoney) || 0;
                 config.content.ResultItemAmount = parseInt(resultItemAmount) || 1;
@@ -1388,19 +1760,115 @@ class ConfigManager {
                 config.content.UnlockByDefault = unlockByDefault;
                 config.content.HideInIndex = hideInIndex;
                 config.content.CostItems = costItems;
+                
+                // 处理额外配方
+                if (recipeItems.length > 0) {
+                    config.content.AdditionalRecipes = [];
+                    
+                    recipeItems.forEach((recipeItem, index) => {
+                        // 获取配方基本信息
+                        const formulaId = recipeItem.querySelector('.formula-id')?.value;
+                        const craftingMoney = recipeItem.querySelector('.crafting-money')?.value;
+                        const resultItemAmount = recipeItem.querySelector('.result-item-amount')?.value;
+                        const craftingTags = recipeItem.querySelector('.crafting-tags')?.value;
+                        const requirePerk = recipeItem.querySelector('.require-perk')?.value;
+                        const unlockByDefault = recipeItem.querySelector('.unlock-by-default')?.checked || false;
+                        const hideInIndex = recipeItem.querySelector('.hide-in-index')?.checked || false;
+                        const lockInDemo = recipeItem.querySelector('.lock-in-demo')?.checked || false;
+                        
+                        // 获取材料列表
+                        const costItems = [];
+                        const costItemRows = recipeItem.querySelectorAll('.cost-items-container .cost-item-row');
+                        costItemRows.forEach(row => {
+                            const itemIdInput = row.querySelector('input[placeholder="物品ID"]');
+                            const amountInput = row.querySelector('input[placeholder="数量"]');
+                            
+                            if (itemIdInput && amountInput) {
+                                const itemId = parseInt(itemIdInput.value);
+                                const amount = parseInt(amountInput.value);
+                                
+                                if (!isNaN(itemId) && !isNaN(amount) && itemId > 0 && amount > 0) {
+                                    costItems.push({
+                                        ItemId: itemId,
+                                        Amount: amount
+                                    });
+                                }
+                            }
+                        });
+                        
+                        // 只有当有配方ID或成本物品时才添加到额外配方
+                        if (formulaId || costItems.length > 0) {
+                            config.content.AdditionalRecipes.push({
+                                FormulaId: formulaId || '',
+                                CraftingMoney: parseInt(craftingMoney) || 0,
+                                ResultItemAmount: parseInt(resultItemAmount) || 1,
+                                CraftingTags: craftingTags ? [craftingTags] : [],
+                                RequirePerk: requirePerk || '',
+                                UnlockByDefault: unlockByDefault,
+                                HideInIndex: hideInIndex,
+                                LockInDemo: lockInDemo,
+                                CostItems: costItems
+                            });
+                        }
+                    });
+                }
             }
+            
+            // 添加配件槽相关字段 - 始终添加这些字段，确保配置完整
+            const extraSlotTags = document.getElementById('extra-slot-tags')?.value;
+            const extraSlotCount = document.getElementById('extra-slot-count')?.value;
+            const customSlotNames = document.getElementById('custom-slot-names')?.value;
+            
+            config.content.AdditionalSlotTags = extraSlotTags ? extraSlotTags.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+            config.content.AdditionalSlotCount = parseInt(extraSlotCount) || 0;
+            config.content.AdditionalSlotNames = customSlotNames ? customSlotNames.split(',').map(name => name.trim()).filter(name => name) : [];
+            
+            // 添加分解配方相关字段 - 始终添加这些字段，确保配置完整
+            config.content.EnableDecompose = document.getElementById('enable-decompose')?.checked || false;
+            
+            // 获取分解产出物品列表
+            const decomposeResults = [];
+            const decomposeResultRows = document.querySelectorAll('#decompose-results-container .decompose-result-row');
+            decomposeResultRows.forEach(row => {
+                const itemIdInput = row.querySelector('input[placeholder="物品ID"]');
+                const amountInput = row.querySelector('input[placeholder="数量"]');
+                
+                if (itemIdInput && amountInput) {
+                    const itemId = parseInt(itemIdInput.value);
+                    const amount = parseInt(amountInput.value);
+                    
+                    if (!isNaN(itemId) && !isNaN(amount) && itemId > 0 && amount > 0) {
+                        decomposeResults.push({
+                            ItemId: itemId,
+                            Amount: amount
+                        });
+                    }
+                }
+            });
+            
+            config.content.DecomposeMoney = parseInt(document.getElementById('decompose-money')?.value) || 0;
+            config.content.DecomposeResults = decomposeResults;
             
             // 获取特定属性和mshook属性的键名
             const specificPropsKey = this.getSpecificPropsKey(configType);
             const mshookPropsKey = this.getMshookPropsKey();
             
-            // 初始化特定类型属性
-            if (specificPropsKey) {
+            // 初始化特定类型属性（配件类型除外，配件属性保存到mshook中）
+            if (specificPropsKey && configType !== 'accessory') {
                 config.content[specificPropsKey] = {};
             }
             
             // 初始化mshook属性
             config.content[mshookPropsKey] = {};
+            
+            // 处理BuffDuration配置
+            const buffDuration = parseFloat(document.getElementById('buff-duration')?.value);
+            if (!isNaN(buffDuration) && buffDuration > 0) {
+                // 将BuffDuration对象直接添加到配置内容中
+                config.content.BuffDuration = {
+                    Duration: buffDuration
+                };
+            }
             
             // 处理所有特定属性输入
             document.querySelectorAll('.specific-property').forEach(input => {
@@ -1410,12 +1878,12 @@ class ConfigManager {
                 
                 // 只有值不是NaN且不为0的属性才保存，减少配置文件大小
                 if (!isNaN(value) && value !== 0) {
-                    // 根据propType决定保存到哪个对象
-                    if (propType === 'mshook') {
-                        // 真正的mshook属性只保存到mshook对象中
+                    // 根据propType和配置类型决定保存到哪个对象
+                    if (propType === 'mshook' || configType === 'accessory') {
+                        // mshook属性和配件特定属性都保存到mshook对象中
                         config.content[mshookPropsKey][key] = value;
                     } else if (specificPropsKey) {
-                        // 特定类型属性只保存到特定类型属性对象中
+                        // 其他类型的特定属性保存到对应类型属性对象中
                         config.content[specificPropsKey][key] = value;
                     }
                 }
@@ -1669,7 +2137,7 @@ class ConfigManager {
                 content: {
                     OriginalItemId: parseInt(document.getElementById('original-item-id').value) || 0,
                     NewItemId: parseInt(document.getElementById('new-item-id').value) || 0,
-                    DisplayName: document.getElementById('display-name').value || '',
+                    DisplayName: (document.getElementById('display-name')?.value) || '',
                     LocalizationKey: document.getElementById('localization-key').value || '',
                     LocalizationDescValue: document.getElementById('localization-desc-value').value || '',
                     Weight: parseFloat(document.getElementById('weight').value) || 0,

@@ -149,7 +149,7 @@
                     <!-- 编辑表单 (初始隐藏) -->
                     <div class="hidden" id="editor-form">
                         <!-- 基本信息区域 -->
-                        <div class="mb-8">
+                        <div class="mb-6">
                             <div class="flex items-center justify-between mb-4">
                                 <h2 class="text-xl font-bold" id="edit-title">编辑配置</h2>
                                 <div class="flex space-x-2">
@@ -172,7 +172,7 @@
                                 </div>
                             </div>
                             
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">配置类型</label>
                                     <select id="config-type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
@@ -192,99 +192,240 @@
                         </div>
                         
                         <!-- 基础属性 -->
-                        <div class="mb-8">
+                        <div class="mb-6">
                             <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-semibold">基础属性</h3>
-                                <div class="text-xs text-gray-500">所有字段均为必填项</div>
+                                <h3 class="text-lg font-semibold flex items-center">
+                                    <i class="fa fa-cube mr-2 text-primary"></i>
+                                    基础属性
+                                </h3>
+                                <div class="text-xs text-gray-500">核心配置信息</div>
                             </div>
                             
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">原始物品ID</label>
-                                    <div class="relative">
-                                        <input type="number" id="original-item-id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                        <div id="original-item-name" class="absolute top-0 right-0 bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-r-md pointer-events-none"></div>
-                                        <button type="button" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700" onclick="showItemSelector('original-item-id')">
-                                            <i class="fa fa-search"></i>
-                                        </button>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <!-- 核心标识 -->
+                                    <div class="md:col-span-2 lg:col-span-3">
+                                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                            <i class="fa fa-key mr-2 text-primary"></i>
+                                            核心标识
+                                        </h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">原始物品ID</label>
+                                                <div class="relative">
+                                                    <input type="number" id="original-item-id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                                    <button type="button" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700" onclick="showItemSelector('original-item-id')">
+                                                        <i class="fa fa-search"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">新物品ID</label>
+                                                <div class="relative">
+                                                    <input type="number" id="new-item-id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                                    <button type="button" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700" onclick="showItemSelector('new-item-id')">
+                                                        <i class="fa fa-search"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">新物品ID</label>
-                                    <div class="relative">
-                                        <input type="number" id="new-item-id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                        <div id="new-item-name" class="absolute top-0 right-0 bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-r-md pointer-events-none"></div>
-                                        <button type="button" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700" onclick="showItemSelector('new-item-id')">
-                                            <i class="fa fa-search"></i>
-                                        </button>
+                                    
+                                    <!-- 显示信息 -->
+                                    <div class="md:col-span-2 lg:col-span-3">
+                                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                            <i class="fa fa-eye mr-2 text-primary"></i>
+                                            显示信息
+                                        </h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">物品名称</label>
+                                                <input type="text" id="display-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+                                            <div>
+                                                
+                                                
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">本地化键名</label>
+                                                <input type="text" id="localization-key" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">本地化描述</label>
+                                                <input type="text" id="localization-desc-value" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">图标文件名</label>
+                                                <div class="flex items-center space-x-2">
+                                                    <input type="text" id="icon-filename" class="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                                    <button id="btn-upload-icon" class="px-3 py-2 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors">
+                                                        <i class="fa fa-image"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <img id="icon-preview" class="hidden w-16 h-16 object-contain border border-gray-200 rounded-md" src="" alt="图标预览">
+                                                </div>
+                                            </div>
+
+                                        </div>
                                     </div>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">显示名称</label>
-                                    <input type="text" id="display-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">本地化键名</label>
-                                    <input type="text" id="localization-key" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">本地化描述</label>
-                                    <input type="text" id="localization-desc-value" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">图标文件名</label>
-                                    <div class="flex items-center space-x-2">
-                                        <input type="text" id="icon-filename" class="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                        <button id="btn-upload-icon" class="px-3 py-2 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors">
-                                            <i class="fa fa-image"></i>
-                                        </button>
+                                    
+                                    <!-- 基础数值 -->
+                                    <div class="md:col-span-2 lg:col-span-3">
+                                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                            <i class="fa fa-sliders mr-2 text-primary"></i>
+                                            基础数值
+                                        </h4>
+                                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">重量</label>
+                                                <input type="number" step="0.1" id="weight" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">价值</label>
+                                                <input type="number" id="value" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">品质</label>
+                                                <input type="number" min="1" max="9" id="quality" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">最大堆叠数量</label>
+                                                <input type="number" min="1" id="max-stack-count" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">显示品质等级</label>
+                                                <input type="number" min="0" id="display-quality" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+                                        </div>
                                     </div>
-                                    <!-- 图标预览 -->
-                                    <div class="mt-2">
-                                        <img id="icon-preview" class="hidden w-16 h-16 object-contain border border-gray-200 rounded-md" src="" alt="图标预览">
+                                    
+                                    <!-- 食物/药物属性 -->
+                                    <div class="md:col-span-2 lg:col-span-3">
+                                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                            <i class="fa fa-heart mr-2 text-primary"></i>
+                                            食物/药物属性
+                                        </h4>
+                                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">能量值</label>
+                                                <input type="number" step="0.1" id="energy-value" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">水分值</label>
+                                                <input type="number" step="0.1" id="water-value" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">治疗值</label>
+                                                <input type="number" id="heal-value" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">重量</label>
-                                    <input type="number" step="0.1" id="weight" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">价值</label>
-                                    <input type="number" id="value" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">能量值</label>
-                                    <input type="number" step="0.1" id="energy-value" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">水分值</label>
-                                    <input type="number" step="0.1" id="water-value" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">本地化描述键名</label>
-                                    <input type="text" id="localization-desc" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="例如: _Desc">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">品质</label>
-                                    <input type="number" min="1" max="9" id="quality" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                    
+                                    <!-- 耐久度属性 -->
+                                    <div class="md:col-span-2 lg:col-span-3">
+                                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                            <i class="fa fa-shield mr-2 text-primary"></i>
+                                            耐久度属性
+                                        </h4>
+                                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">最大耐久度</label>
+                                                <input type="number" step="0.1" id="max-durability" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">耐久度损失率</label>
+                                                <input type="number" step="0.01" min="0" max="1" id="durability-loss" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">使用耐久度消耗</label>
+                                                <input type="number" step="0.1" id="use-durability" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">药物耐久度使用量</label>
+                                                <input type="number" step="0.1" id="durability-usage-drug" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">使用时间(秒)</label>
+                                                <input type="number" step="0.1" id="use-time" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Buff持续时间(秒)</label>
+                                                <input type="number" step="0.1" id="buff-duration" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+
                                 </div>
                             </div>
+                        </div>
+                        
+                        <!-- 限制属性 -->
+                        <div class="mb-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold flex items-center">
+                                    <i class="fa fa-lock mr-2 text-warning"></i>
+                                    限制属性
+                                </h3>
+                                <div class="text-xs text-gray-500">物品使用限制</div>
+                            </div>
                             
-                            <!-- 标签输入 -->
-                            <div class="mt-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">标签 (多选)</label>
-                                <div class="mb-2">
-                                    <label class="block text-xs text-gray-500 mb-1">标签搜索</label>
+                            <div class="bg-yellow-50 rounded-lg p-4">
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="stackable" class="mr-2 h-4 w-4 text-primary focus:ring-primary/30 border-gray-300 rounded">
+                                        <label for="stackable" class="text-sm font-medium text-gray-700">是否可堆叠</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="can-be-sold" class="mr-2 h-4 w-4 text-primary focus:ring-primary/30 border-gray-300 rounded">
+                                        <label for="can-be-sold" class="text-sm font-medium text-gray-700">是否可出售</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="can-drop" class="mr-2 h-4 w-4 text-primary focus:ring-primary/30 border-gray-300 rounded">
+                                        <label for="can-drop" class="text-sm font-medium text-gray-700">是否可丢弃</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="unlock-by-default" class="mr-2 h-4 w-4 text-primary focus:ring-primary/30 border-gray-300 rounded">
+                                        <label for="unlock-by-default" class="text-sm font-medium text-gray-700">是否默认解锁</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="hide-in-index" class="mr-2 h-4 w-4 text-primary focus:ring-primary/30 border-gray-300 rounded">
+                                        <label for="hide-in-index" class="text-sm font-medium text-gray-700">是否在列表中隐藏</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="lock-in-demo" class="mr-2 h-4 w-4 text-primary focus:ring-primary/30 border-gray-300 rounded">
+                                        <label for="lock-in-demo" class="text-sm font-medium text-gray-700">是否在演示模式中锁定</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 标签系统 -->
+                        <div class="mb-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold flex items-center">
+                                    <i class="fa fa-tags mr-2 text-info"></i>
+                                    标签系统
+                                </h3>
+                                <div class="text-xs text-gray-500">物品分类标签</div>
+                            </div>
+                            
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <div class="mb-3">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">标签搜索</label>
                                     <input type="text" id="tag-search" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="搜索标签...">
                                 </div>
-                                <div class="mb-2">
-                                    <label class="block text-xs text-gray-500 mb-1">添加自定义标签</label>
+                                <div class="mb-3">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">添加自定义标签</label>
                                     <div class="flex gap-2">
                                         <input type="text" id="custom-tag-input" class="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="输入自定义标签...">
                                         <button type="button" id="add-custom-tag" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50">添加</button>
                                     </div>
                                 </div>
-                                <div id="tags-container" class="p-2 border border-gray-300 rounded-md max-h-40 overflow-y-auto focus:outline-none focus:ring-2 focus:ring-primary/30 flex flex-wrap gap-2">
+                                <div id="tags-container" class="p-3 border border-gray-300 rounded-md max-h-40 overflow-y-auto focus:outline-none focus:ring-2 focus:ring-primary/30 flex flex-wrap gap-2 bg-white">
                                     <!-- 标签选项将通过JavaScript动态添加 -->
                                 </div>
                                 <div class="text-xs text-gray-500 mt-1">提示：可通过搜索框快速筛选标签</div>
@@ -293,9 +434,12 @@
                         </div>
                         
                         <!-- 特定类型属性 -->
-                        <div class="mb-8">
+                        <div class="mb-6">
                             <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-semibold">特定属性</h3>
+                                <h3 class="text-lg font-semibold flex items-center">
+                                    <i class="fa fa-cogs mr-2 text-success"></i>
+                                    特定属性
+                                </h3>
                                 <button id="btn-toggle-properties" class="text-primary text-sm hover:underline flex items-center">
                                     <span id="toggle-properties-text">展开属性</span>
                                     <i class="fa fa-chevron-down ml-1"></i>
@@ -311,11 +455,107 @@
                                 <!-- 根据配置类型动态显示 -->
                             </div>
                         </div>
+
+                        <!-- 配件槽系统 -->
+                        <div class="mb-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold flex items-center">
+                                    <i class="fa fa-puzzle-piece mr-2 text-purple-600"></i>
+                                    配件槽系统
+                                </h3>
+                                <button id="btn-toggle-accessory-slots" class="text-primary text-sm hover:underline flex items-center">
+                                    <span id="toggle-accessory-slots-text">展开配件槽</span>
+                                    <i class="fa fa-chevron-down ml-1"></i>
+                                </button>
+                            </div>
+                            <div id="accessory-slots-form" class="hidden">
+                                <div class="bg-purple-50 rounded-lg p-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">额外槽位标签</label>
+                                            <input type="text" id="extra-slot-tags" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="例如: Scope,Barrel,Magazine">
+                                            <p class="text-xs text-gray-500 mt-1">多个标签用逗号分隔</p>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">额外槽位数量</label>
+                                            <input type="number" min="0" id="extra-slot-count" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                        </div>
+                                        <div class="md:col-span-2">
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">自定义槽位名称</label>
+                                            <input type="text" id="custom-slot-names" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="例如: 瞄准镜,枪管,弹匣">
+                                            <p class="text-xs text-gray-500 mt-1">多个名称用逗号分隔，与槽位标签一一对应</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 分解配方系统 -->
+                        <div class="mb-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold flex items-center">
+                                    <i class="fa fa-recycle mr-2 text-orange-600"></i>
+                                    分解配方系统
+                                </h3>
+                                <button id="btn-toggle-decompose" class="text-primary text-sm hover:underline flex items-center">
+                                    <span id="toggle-decompose-text">展开分解配方</span>
+                                    <i class="fa fa-chevron-down ml-1"></i>
+                                </button>
+                            </div>
+                            <div id="decompose-form" class="hidden">
+                                <div class="bg-orange-50 rounded-lg p-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">分解配方ID</label>
+                                            <input type="text" id="decompose-formula-id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="例如: 1140001">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">分解所需时间(秒)</label>
+                                            <input type="number" min="0" step="0.1" id="decompose-time" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">分解获得货币</label>
+                                            <input type="number" min="0" id="decompose-money" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                        </div>
+                                        <div class="flex items-end">
+                                            <label class="flex items-center text-sm font-medium text-gray-700 mb-1">
+                                                <input type="checkbox" id="enable-decompose" class="mr-2 h-4 w-4 text-primary focus:ring-primary/30 border-gray-300 rounded">
+                                                启用分解
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">分解产出物品</label>
+                                        <div id="decompose-results-container">
+                                            <div class="decompose-result-row flex items-center space-x-2 mb-2">
+                                                <div class="relative flex-1">
+                                                    <input type="number" placeholder="物品ID" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                                    <button type="button" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700" onclick="showItemSelectorForDecompose(this)">
+                                                        <i class="fa fa-search"></i>
+                                                    </button>
+                                                </div>
+                                                <input type="number" placeholder="数量" class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                                <button class="btn-remove-decompose-result px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <i class="fa fa-minus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <button id="btn-add-decompose-result" class="mt-2 px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                                            <i class="fa fa-plus mr-1"></i>
+                                            <span>添加产出物品</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         
                         <!-- 合成配方 -->
-                        <div class="mb-8">
+                        <div class="mb-6">
                             <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-semibold">合成配方</h3>
+                                <h3 class="text-lg font-semibold flex items-center">
+                                    <i class="fa fa-hammer mr-2 text-green-600"></i>
+                                    合成配方
+                                </h3>
                                 <button id="btn-toggle-crafting" class="text-primary text-sm hover:underline flex items-center">
                                     <span id="toggle-crafting-text">添加合成配方</span>
                                     <i class="fa fa-chevron-down ml-1"></i>
@@ -323,65 +563,91 @@
                             </div>
                             
                             <div id="crafting-form" class="hidden">
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">合成配方ID (FormulaId)</label>
-                                        <input type="text" id="formula-id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="例如: 1140001">
-                                        <p class="text-xs text-gray-500 mt-1">必须是唯一的配方ID</p>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">合成所需货币</label>
-                                        <input type="number" id="crafting-money" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">产出数量</label>
-                                        <input type="number" id="result-item-amount" value="1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">合成工作台标签 高级工作台WorkBenchAdvanced</label>
-                                        <input type="text" id="crafting-tags" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="例如: WorkBenchAdvanced" value="WorkBenchAdvanced">
-                                    </div>
-                                </div>
-                                
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">合成所需物品</label>
-                                    <div id="cost-items-container">
-                                        <div class="cost-item-row flex items-center space-x-2 mb-2">
-                                            <div class="relative flex-1">
-                                                <input type="number" placeholder="物品ID" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                                <button type="button" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700" onclick="showItemSelectorForCostItem(this)">
-                                                    <i class="fa fa-search"></i>
+                                <div class="bg-green-50 rounded-lg p-4">
+                                    <!-- 配方列表容器 -->
+                                    <div id="crafting-recipes-container">
+                                        <!-- 配方项模板 -->
+                                        <div class="crafting-recipe-item bg-white border border-gray-200 rounded-lg p-4 mb-4 relative">
+                                            <button type="button" class="absolute top-2 right-2 text-gray-500 hover:text-danger btn-remove-recipe">
+                                                <i class="fa fa-times-circle"></i>
+                                            </button>
+                                            <div class="flex items-center mb-3">
+                                                <h4 class="font-medium text-gray-800">配方</h4>
+                                            </div>
+                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">合成配方ID (FormulaId)</label>
+                                                    <input type="text" class="formula-id w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="例如: 1140001">
+                                                    <p class="text-xs text-gray-500 mt-1">必须是唯一的配方ID</p>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">合成所需货币</label>
+                                                    <input type="number" class="crafting-money w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">产出数量</label>
+                                                    <input type="number" class="result-item-amount w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" value="1">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">合成工作台标签普通WorkBench 高级工作台WorkBenchAdvanced</label>
+                                                    <input type="text" class="crafting-tags w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="例如: WorkBenchAdvanced" value="WorkBenchAdvanced">
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-4">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">合成所需物品</label>
+                                                <div class="cost-items-container">
+                                                    <div class="cost-item-row flex items-center space-x-2 mb-2">
+                                                        <div class="relative flex-1">
+                                                            <input type="number" placeholder="物品ID" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                                            <button type="button" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700" onclick="showItemSelectorForCostItem(this)">
+                                                                <i class="fa fa-search"></i>
+                                                            </button>
+                                                        </div>
+                                                        <input type="number" placeholder="数量" class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" value="1">
+                                                        <button class="btn-remove-cost-item px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded-md hover:bg-gray-50 transition-colors">
+                                                            <i class="fa fa-minus"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn-add-cost-item mt-2 px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors flex items-center">
+                                                    <i class="fa fa-plus mr-1"></i>
+                                                    <span>添加材料</span>
                                                 </button>
                                             </div>
-                                            <input type="number" placeholder="数量" class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                            <button class="btn-remove-cost-item px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded-md hover:bg-gray-50 transition-colors">
-                                                <i class="fa fa-minus"></i>
-                                            </button>
+                                            
+                                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">合成所需天赋</label>
+                                                    <input type="text" class="require-perk w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                                                </div>
+                                                <div>
+                                                    <label class="flex items-center text-sm font-medium text-gray-700 mb-1">
+                                                        <input type="checkbox" class="unlock-by-default mr-2" checked>
+                                                        默认解锁
+                                                    </label>
+                                                </div>
+                                                <div>
+                                                    <label class="flex items-center text-sm font-medium text-gray-700 mb-1">
+                                                        <input type="checkbox" class="hide-in-index mr-2">
+                                                        隐藏在列表
+                                                    </label>
+                                                </div>
+                                                <div>
+                                                    <label class="flex items-center text-sm font-medium text-gray-700 mb-1">
+                                                        <input type="checkbox" class="lock-in-demo mr-2">
+                                                        演示模式锁定
+                                                    </label>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <button id="btn-add-cost-item" class="mt-2 px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors flex items-center">
-                                        <i class="fa fa-plus mr-1"></i>
-                                        <span>添加材料</span>
+                                    
+                                    <!-- 添加新配方按钮 -->
+                                    <button type="button" id="btn-add-new-recipe" class="mt-3 px-4 py-2 bg-green-600/10 text-green-600 rounded-md hover:bg-green-600/20 transition-colors flex items-center">
+                                        <i class="fa fa-plus mr-2"></i>
+                                        <span>添加新配方</span>
                                     </button>
-                                </div>
-                                
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">合成所需天赋</label>
-                                        <input type="text" id="require-perk" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
-                                    </div>
-                                    <div>
-                                        <label class="flex items-center text-sm font-medium text-gray-700 mb-1">
-                                            <input type="checkbox" id="unlock-by-default" class="mr-2" checked>
-                                            默认解锁
-                                        </label>
-                                    </div>
-                                    <div>
-                                        <label class="flex items-center text-sm font-medium text-gray-700 mb-1">
-                                            <input type="checkbox" id="hide-in-index" class="mr-2">
-                                            隐藏在列表
-                                        </label>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -516,11 +782,6 @@
         </div>
     </div>
 
-    <!-- 引入自定义样式和属性建议系统 -->
-    
-    <!-- 属性建议系统 -->
-    <script src="attribute-suggestions.js"></script>
-    
     <!-- 引入配置管理核心逻辑 -->
     <script src="config-manager.js"></script>
     
@@ -531,16 +792,9 @@
             window.configManager = new ConfigManager();
             window.configManager.initialize();
             
-            // 初始化属性建议系统
-            if (window.attributeSuggestionSystem && typeof window.attributeSuggestionSystem.initialize === 'function') {
-                window.attributeSuggestionSystem.initialize();
-            }
             // 配置管理相关
             document.getElementById('btn-new-config').addEventListener('click', showNewConfigModal);
             document.getElementById('quick-new-config').addEventListener('click', showNewConfigModal);
-            // 移除重复的事件绑定，因为config-manager.js中已经绑定了
-            // document.getElementById('btn-import-config').addEventListener('click', () => document.getElementById('file-input').click());
-// 移除直接绑定的事件监听器，避免重复触发，统一在config-manager.js中管理
             document.getElementById('close-new-config-modal').addEventListener('click', hideNewConfigModal);
             document.getElementById('cancel-new-config').addEventListener('click', hideNewConfigModal);
             document.getElementById('confirm-new-config').addEventListener('click', createNewConfig);
@@ -551,13 +805,22 @@
             });
 
             // 合成配方相关
-            document.getElementById('btn-toggle-crafting').addEventListener('click', toggleCraftingForm);
+            if (document.getElementById('btn-toggle-crafting')) document.getElementById('btn-toggle-crafting').addEventListener('click', toggleCraftingForm);
             // 特定属性相关
-            document.getElementById('btn-toggle-properties').addEventListener('click', togglePropertiesForm);
-            document.getElementById('btn-add-cost-item').addEventListener('click', addCostItemRow);
+            if (document.getElementById('btn-toggle-properties')) document.getElementById('btn-toggle-properties').addEventListener('click', togglePropertiesForm);
+            // 配件槽相关
+            if (document.getElementById('btn-toggle-accessory-slots')) document.getElementById('btn-toggle-accessory-slots').addEventListener('click', toggleAccessorySlotsForm);
+            // 分解配方相关
+            if (document.getElementById('btn-toggle-decompose')) document.getElementById('btn-toggle-decompose').addEventListener('click', toggleDecomposeForm);
+            
+            if (document.getElementById('btn-add-cost-item')) document.getElementById('btn-add-cost-item').addEventListener('click', addCostItemRow);
+            if (document.getElementById('btn-add-decompose-result')) document.getElementById('btn-add-decompose-result').addEventListener('click', addDecomposeResultRow);
             document.addEventListener('click', (e) => {
                 if (e.target.closest('.btn-remove-cost-item')) {
                     removeCostItemRow(e.target.closest('.cost-item-row'));
+                }
+                if (e.target.closest('.btn-remove-decompose-result')) {
+                    removeDecomposeResultRow(e.target.closest('.decompose-result-row'));
                 }
             });
 
@@ -728,6 +991,69 @@
             }
         }
 
+        // 配件槽相关函数
+        function toggleAccessorySlotsForm() {
+            const accessorySlotsForm = document.getElementById('accessory-slots-form');
+            const isHidden = accessorySlotsForm.classList.contains('hidden');
+            if (isHidden) {
+                document.getElementById('toggle-accessory-slots-text').textContent = '隐藏配件槽';
+                accessorySlotsForm.classList.remove('hidden');
+            } else {
+                document.getElementById('toggle-accessory-slots-text').textContent = '展开配件槽';
+                accessorySlotsForm.classList.add('hidden');
+            }
+        }
+
+        // 分解配方相关函数
+        function toggleDecomposeForm() {
+            const decomposeForm = document.getElementById('decompose-form');
+            const isHidden = decomposeForm.classList.contains('hidden');
+            if (isHidden) {
+                document.getElementById('toggle-decompose-text').textContent = '隐藏分解配方';
+                decomposeForm.classList.remove('hidden');
+                // 添加默认产出行
+                if (document.querySelectorAll('.decompose-result-row').length === 0) {
+                    addDecomposeResultRow();
+                }
+            } else {
+                document.getElementById('toggle-decompose-text').textContent = '展开分解配方';
+                decomposeForm.classList.add('hidden');
+            }
+        }
+
+        function addDecomposeResultRow(itemId = '', amount = 1) {
+            const container = document.getElementById('decompose-results-container');
+            const row = document.createElement('div');
+            row.className = 'decompose-result-row flex items-center space-x-2 mb-2';
+            row.innerHTML = `
+                <div class="relative flex-1">
+                    <input type="number" placeholder="物品ID" value="${itemId}" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                    <button type="button" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700" onclick="showItemSelectorForDecompose(this)">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </div>
+                <input type="number" placeholder="数量" value="${amount}" 
+                    class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                <button class="btn-remove-decompose-result px-3 py-2 bg-white border border-gray-300 text-gray-500 rounded-md hover:bg-gray-50 transition-colors">
+                    <i class="fa fa-minus"></i>
+                </button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeDecomposeResultRow(rowElement) {
+            if (document.querySelectorAll('.decompose-result-row').length > 1) {
+                rowElement.remove();
+            }
+        }
+
+        // 分解配方物品选择器
+        function showItemSelectorForDecompose(button) {
+            currentCostItemButton = button;
+            showItemSelector();
+        }
+
         // 配置过滤相关函数
         function filterConfigs() {
             const searchTerm = document.getElementById('config-search').value.toLowerCase();
@@ -825,11 +1151,16 @@
             showItemSelector();
         }
 
-        function showItemSelector() {
+        let targetInputId = null;
+        
+        function showItemSelector(inputId) {
             document.getElementById('item-selector-modal').classList.remove('hidden');
             document.getElementById('item-search-input').focus();
             document.getElementById('item-search-input').value = '';
             document.getElementById('item-search-results').innerHTML = '';
+            
+            // 保存目标输入框ID
+            targetInputId = inputId;
             
             // 加载物品数据
             loadItemsData();
@@ -838,30 +1169,52 @@
         function hideItemSelector() {
             document.getElementById('item-selector-modal').classList.add('hidden');
             currentCostItemButton = null;
+            targetInputId = null;
         }
 
         function loadItemsData() {
             // 模拟加载物品数据，实际应该从服务器获取
-            fetch('6.json')
-                .then(response => response.json())
-                .then(data => {
-                    itemsData = data;
-                    renderItemSearchResults('');
-                })
-                .catch(error => {
-                    console.error('加载物品数据失败:', error);
-                    // 使用模拟数据作为备用
-                    itemsData = [
-                        { id: 1, name: '木材' },
-                        { id: 2, name: '石头' },
-                        { id: 3, name: '铁锭' },
-                        { id: 4, name: '金锭' },
-                        { id: 5, name: '钻石' },
-                        { id: 6, name: '皮革' }
-                    ];
-                    renderItemSearchResults('');
-                });
+            try {
+                fetch('6.json')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (Array.isArray(data) && data.length > 0) {
+                            itemsData = data;
+                        } else {
+                            console.warn('JSON文件存在但数据为空，使用备用数据');
+                            loadDefaultItems();
+                        }
+                        renderItemSearchResults('');
+                    })
+                    .catch(error => {
+                        console.error('加载物品数据失败:', error);
+                        loadDefaultItems();
+                        renderItemSearchResults('');
+                    });
+            } catch (e) {
+                console.error('获取物品数据时出现异常:', e);
+                loadDefaultItems();
+                renderItemSearchResults('');
+            }
         }
+        
+        function loadDefaultItems() {
+            // 使用模拟数据作为备用
+            itemsData = [
+                { id: 1, name: '木材' },
+                { id: 2, name: '石头' },
+                { id: 3, name: '铁锭' },
+                { id: 4, name: '金锭' },
+                { id: 5, name: '钻石' },
+                { id: 6, name: '皮革' }
+            ];
+        }
+
 
         function renderItemSearchResults(searchTerm) {
             const resultsContainer = document.getElementById('item-search-results');
@@ -894,6 +1247,13 @@
                 const row = currentCostItemButton.closest('.cost-item-row');
                 const itemIdInput = row.querySelector('input[type="number"]:first-child');
                 itemIdInput.value = item.id;
+            } else if (targetInputId) {
+                // 更新指定的输入框
+                const targetInput = document.getElementById(targetInputId);
+                if (targetInput) {
+                    targetInput.value = item.id;
+                }
+                targetInputId = null;
             }
             hideItemSelector();
         }
@@ -924,5 +1284,5 @@
             }
         });
     </script>
-    </body>
+</body>
 </html>
