@@ -7,6 +7,89 @@ class ConfigManager {
         this.configDir = './Configs'; // 相对于HTML文件的路径
         this.iconsDir = './icons';
         
+        // Buff数据
+        this.buffData = [
+            // 移动与负重
+            {"分类": "移动与负重", "Buff ID": 1011, "Name": "1011_Buff_AddSpeed", "DisplayName": "加速", "说明": "提升移动速度"},
+            {"分类": "移动与负重", "Buff ID": 1021, "Name": "1021_Buff_Weight_Light", "DisplayName": "轻盈", "说明": "减少负重影响"},
+            {"分类": "移动与负重", "Buff ID": 1022, "Name": "1022_Buff_Weight_Heavy", "DisplayName": "负重", "说明": "增加负重影响"},
+            {"分类": "移动与负重", "Buff ID": 1023, "Name": "1023_Buff_Weight_SuperHeavy", "DisplayName": "超重", "说明": "大幅增加负重影响"},
+            {"分类": "移动与负重", "Buff ID": 1024, "Name": "1024_Buff_Weight_Overweight", "DisplayName": "无法承受", "说明": "极端负重，可能限制行动"},
+            
+            // 负面状态
+            {"分类": "负面状态", "Buff ID": 1001, "Name": "1001_Buff_BleedS", "DisplayName": "出血", "说明": "持续损失生命"},
+            {"分类": "负面状态", "Buff ID": 1002, "Name": "1002_Buff_BleedUnlimit", "DisplayName": "出血", "说明": "无限制出血（更严重）"},
+            {"分类": "负面状态", "Buff ID": 1003, "Name": "1003_Buff_BoneCrack", "DisplayName": "骨折", "说明": "降低移动/攻击能力"},
+            {"分类": "负面状态", "Buff ID": 1004, "Name": "1004_Buff_Wound", "DisplayName": "创伤", "说明": "持续生命损失+属性降低"},
+            {"分类": "负面状态", "Buff ID": 1032, "Name": "1032_Buff_Starve", "DisplayName": "饥饿", "说明": "持续生命损失+属性降低"},
+            {"分类": "负面状态", "Buff ID": 1, "Name": "0001_Buff_Thirsty", "DisplayName": "脱水", "说明": "持续生命损失+属性降低"},
+            {"分类": "负面状态", "Buff ID": 1041, "Name": "1041_Buff_Stun", "DisplayName": "震慑", "说明": "短暂无法行动"},
+            {"分类": "负面状态", "Buff ID": 1061, "Name": "1061_Buff_PoisonS", "DisplayName": "中毒", "说明": "持续生命损失+属性降低"},
+            {"分类": "负面状态", "Buff ID": 1071, "Name": "1071_Buff_Electric", "DisplayName": "触电", "说明": "持续生命损失+属性降低"},
+            {"分类": "负面状态", "Buff ID": 1121, "Name": "1121_Buff_Burn", "DisplayName": "点燃", "说明": "持续生命损失+属性降低"},
+            {"分类": "负面状态", "Buff ID": 1111, "Name": "1111_Buff_Space", "DisplayName": "扰动", "说明": "空间扭曲造成的负面效果"},
+            {"分类": "负面状态", "Buff ID": 1123, "Name": "1123_Buff_Nauseous", "DisplayName": "恶心", "说明": "属性降低+行动限制"},
+            
+            // 增益与抵抗
+            {"分类": "增益与抵抗", "Buff ID": 1012, "Name": "1012_Buff_InjectorMaxWeight", "DisplayName": "负重提升", "说明": "临时增加最大负重"},
+            {"分类": "增益与抵抗", "Buff ID": 1013, "Name": "1013_Buff_InjectorArmor", "DisplayName": "硬化", "说明": "提升护甲"},
+            {"分类": "增益与抵抗", "Buff ID": 1014, "Name": "1014_Buff_InjectorStamina", "DisplayName": "持久", "说明": "提升耐力恢复/上限"},
+            {"分类": "增益与抵抗", "Buff ID": 1015, "Name": "1015_Buff_InjectorMeleeDamage", "DisplayName": "力量", "说明": "提升近战伤害"},
+            {"分类": "增益与抵抗", "Buff ID": 1017, "Name": "1017_Buff_InjectorRecoilControl", "DisplayName": "强翅", "说明": "降低武器后坐力"},
+            {"分类": "增益与抵抗", "Buff ID": 1018, "Name": "1018_Buff_HealForWhile", "DisplayName": "回复", "说明": "持续生命恢复"},
+            {"分类": "增益与抵抗", "Buff ID": 1072, "Name": "1072_Buff_ElecResistShort", "DisplayName": "抗电", "说明": "短时间免疫触电"},
+            {"分类": "增益与抵抗", "Buff ID": 1074, "Name": "1074_Buff_FireResistShort", "DisplayName": "抗火", "说明": "短时间免疫点燃"},
+            {"分类": "增益与抵抗", "Buff ID": 1075, "Name": "1075_Buff_PoisonResistShort", "DisplayName": "抗毒", "说明": "短时间免疫中毒"},
+            {"分类": "增益与抵抗", "Buff ID": 1076, "Name": "1076_Buff_SpaceResistShort", "DisplayName": "抗空间", "说明": "短时间免疫空间扭曲"},
+            {"分类": "增益与抵抗", "Buff ID": 1082, "Name": "1082_Buff_PainResistShort", "DisplayName": "镇静", "说明": "短时间免疫疼痛"},
+            {"分类": "增益与抵抗", "Buff ID": 1083, "Name": "1083_Buff_PainResistMiddle", "DisplayName": "镇静", "说明": "中时间免疫疼痛"},
+            {"分类": "增益与抵抗", "Buff ID": 1084, "Name": "1084_Buff_PainResistLong", "DisplayName": "镇静", "说明": "长时间免疫疼痛"},
+            {"分类": "增益与抵抗", "Buff ID": 1113, "Name": "1113_Buff_StormProtection1", "DisplayName": "弱效空间抵抗", "说明": "抵抗空间风暴（弱）"},
+            {"分类": "增益与抵抗", "Buff ID": 1114, "Name": "1114_Buff_StormProtection2", "DisplayName": "强效空间抵抗", "说明": "抵抗空间风暴（强）"},
+            {"分类": "增益与抵抗", "Buff ID": 1115, "Name": "1115_Buff_SpaceResistLow", "DisplayName": "空间减伤（小）", "说明": "降低空间伤害（小）"},
+            {"分类": "增益与抵抗", "Buff ID": 1116, "Name": "1116_Buff_SpaceResistHigh", "DisplayName": "空间减伤（大）", "说明": "降低空间伤害（大）"},
+            
+            // 特殊效果
+            {"分类": "特殊效果", "Buff ID": 1201, "Name": "1201_Buff_NightVision", "DisplayName": "明视", "说明": "夜视能力"},
+            {"分类": "特殊效果", "Buff ID": 1202, "Name": "1202_Buff_PaperBox", "DisplayName": "伪装", "说明": "降低被敌人发现的概率"},
+            {"分类": "特殊效果", "Buff ID": 1101, "Name": "1101_Buff_Happy", "DisplayName": "高兴", "说明": "提升心情/属性"},
+            {"分类": "特殊效果", "Buff ID": 1091, "Name": "1091_Buff_HotBlood", "DisplayName": "热血", "说明": "提升伤害但降低防御"},
+            {"分类": "特殊效果", "Buff ID": 1307, "Name": "1307_Buff_Boss_RedBoss", "DisplayName": "*Buff_Red*", "说明": "Boss专属特殊效果"},
+            
+            // 装备与图腾
+            {"分类": "装备与图腾", "Buff ID": 1401, "Name": "1401_buff_equip_Hurt", "DisplayName": "干枯", "说明": "装备带来的负面效果"},
+            {"分类": "装备与图腾", "Buff ID": 1402, "Name": "1402_buff_equip_FC_Buff", "DisplayName": "高手", "说明": "装备带来的增益效果"},
+            {"分类": "装备与图腾", "Buff ID": 1481, "Name": "1481_Buff_Totem_Heal1", "DisplayName": "回复", "说明": "图腾带来的生命恢复"},
+            {"分类": "装备与图腾", "Buff ID": 1900, "Name": "1900_buff_Totem_Describe_hurt", "DisplayName": "图腾诅咒", "说明": "图腾带来的负面效果"},
+            
+            // 免疫类
+            {"分类": "免疫类", "Buff ID": 1491, "Name": "1491_buff_equip_BleedResist", "DisplayName": "出血免疫", "说明": "装备提供的出血免疫"},
+            {"分类": "免疫类", "Buff ID": 1492, "Name": "1492_buff_equip_PoisonResist", "DisplayName": "免疫中毒", "说明": "装备提供的中毒免疫"},
+            {"分类": "免疫类", "Buff ID": 1493, "Name": "1493_buff_equip_ElecResist", "DisplayName": "免疫感电", "说明": "装备提供的触电免疫"},
+            {"分类": "免疫类", "Buff ID": 1494, "Name": "1494_buff_equip_BurnResist", "DisplayName": "免疫点燃", "说明": "装备提供的点燃免疫"},
+            {"分类": "免疫类", "Buff ID": 1495, "Name": "1495_buff_equip_SpaceResist", "DisplayName": "免疫碎裂", "说明": "装备提供的空间扭曲免疫"},
+            {"分类": "免疫类", "Buff ID": 1496, "Name": "1496_buff_equip_NauseousResist", "DisplayName": "免疫恶心", "说明": "装备提供的恶心免疫"},
+            {"分类": "免疫类", "Buff ID": 1497, "Name": "1497_buff_equip_StunResist", "DisplayName": "免疫震慑", "说明": "装备提供的震慑免疫"},
+            
+            // 补充剩余Buff
+            {"分类": "负面状态", "Buff ID": 1016, "Name": "1016_Buff_InjectorMeleeDamageDebuff", "DisplayName": "萎靡", "说明": "降低近战伤害"},
+            {"分类": "负面状态", "Buff ID": 1112, "Name": "1112_Buff_Space2", "DisplayName": "扭曲", "说明": "空间扭曲强化负面效果"},
+            {"分类": "负面状态", "Buff ID": 1117, "Name": "1117_Buff_SpaceGun", "DisplayName": "碎裂", "说明": "空间武器造成的负面效果"},
+            {"分类": "增益与抵抗", "Buff ID": 1301, "Name": "1301_Buff_Boss_Heal_StormFire", "DisplayName": "回复", "说明": "Boss专属生命恢复"},
+            {"分类": "增益与抵抗", "Buff ID": 1302, "Name": "1302_Buff_Boss_Heal_StormSpace", "DisplayName": "回复", "说明": "Boss专属生命恢复"},
+            {"分类": "负面状态", "Buff ID": 1305, "Name": "1305_Buff_Boss_Hurt_StormSpace", "DisplayName": "干枯", "说明": "Boss造成的负面效果"},
+            {"分类": "负面状态", "Buff ID": 1306, "Name": "1306_Buff_Boss_Hurt_StormFire", "DisplayName": "干枯", "说明": "Boss造成的负面效果"},
+            {"分类": "特殊效果", "Buff ID": 1203, "Name": "1203_Buff_RedEye", "DisplayName": "???", "说明": "未知特殊效果"},
+            {"分类": "特殊效果", "Buff ID": 1092, "Name": "1092_Buff_Injector_HotBlood_Trigger", "DisplayName": "易怒", "说明": "触发热血状态的前置效果"},
+            {"分类": "特殊效果", "Buff ID": 1093, "Name": "1093_Buff_Injector_HotBlood_SpeedDamage", "DisplayName": "愤怒", "说明": "热血状态强化效果"},
+            {"分类": "特殊效果", "Buff ID": 1303, "Name": "1303_Buff_Boss_Trigger_School", "DisplayName": "易怒", "说明": "Boss触发强化状态的前置效果"},
+            {"分类": "特殊效果", "Buff ID": 1304, "Name": "1304_Buff_Boss_SpeedDamage_School", "DisplayName": "愤怒", "说明": "Boss强化状态效果"},
+            {"分类": "增益与抵抗", "Buff ID": 1019, "Name": "1019_buff_Injector_BleedResist", "DisplayName": "出血免疫", "说明": "注射器提供的临时出血免疫"},
+            {"分类": "特殊效果", "Buff ID": 1051, "Name": "1051_Buff_Base", "DisplayName": "基地", "说明": "基地相关特殊效果"},
+            {"分类": "负面状态", "Buff ID": 1081, "Name": "1081_Buff_Pain", "DisplayName": "疼痛", "说明": "持续疼痛造成的属性降低"},
+            {"分类": "负面状态", "Buff ID": 1073, "Name": "1073_Buff_ElectricGrenade", "DisplayName": "触电", "说明": "电 grenade 造成的触电效果"}
+        ];
+        
         // 验证规则映射 - 根据mshook.cs中的实现定义
         this.VALIDATION_RULES = {
             weapon: {
@@ -1016,8 +1099,20 @@ class ConfigManager {
         // 尝试加载图标预览
         this.previewIcon(content.IconFileName);
         
-        // 加载合成配方数据
-        const hasRecipeData = content.Formulas || 
+            // 加载BuffCopyConfigs配置
+            if (content.BuffCopyConfigs && Array.isArray(content.BuffCopyConfigs)) {
+                this.loadBuffConfigsToEditor(content.BuffCopyConfigs);
+            } else {
+                // 如果没有BuffCopyConfigs，添加一个空的配置项
+                const container = document.getElementById('buff-configs-container');
+                if (container) {
+                    container.innerHTML = '';
+                    this.addBuffConfigItem();
+                }
+            }
+            
+            // 加载合成配方数据
+            const hasRecipeData = content.Formulas || 
                            (content.FormulaId || content.CraftingMoney || content.ResultItemAmount || 
                             content.CraftingTags || content.RequirePerk || content.UnlockByDefault !== undefined || 
                             content.HideInIndex !== undefined || content.CostItems);
@@ -1730,7 +1825,7 @@ class ConfigManager {
             if (formulaId || craftingMoney || resultItemAmount || craftingTags || requirePerk || unlockByDefault || hideInIndex) {
                 // 获取材料列表
                 const costItems = [];
-                const costItemRows = document.querySelectorAll('#cost-items-container .cost-item-row');
+                const costItemRows = document.querySelectorAll('.cost-items-container .cost-item-row');
                 costItemRows.forEach(row => {
                     const itemIdInput = row.querySelector('input[placeholder="物品ID"]');
                     const amountInput = row.querySelector('input[placeholder="数量"]');
@@ -1870,6 +1965,12 @@ class ConfigManager {
                 config.content.BuffDuration = {
                     Duration: buffDuration
                 };
+            }
+            
+            // 处理BuffCopyConfigs配置
+            const buffConfigs = this.getBuffConfigs();
+            if (buffConfigs.length > 0) {
+                config.content.BuffCopyConfigs = buffConfigs;
             }
             
             // 处理所有特定属性输入
@@ -2206,78 +2307,82 @@ class ConfigManager {
     }
 
     /**
+     * 确保通知容器存在
+     */
+    ensureNotificationContainer() {
+        let container = document.getElementById('notification-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'notification-container';
+            container.className = 'fixed top-4 right-4 z-50 flex flex-col space-y-2';
+            document.body.appendChild(container);
+        }
+        return container;
+    }
+
+    /**
+     * 显示通知
+     */
+    showNotification(title, message, type = 'success') {
+        const container = this.ensureNotificationContainer();
+        
+        // 创建通知元素
+        const notification = document.createElement('div');
+        const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+        notification.className = `${bgColor} text-white px-4 py-2 rounded-md shadow-lg animate-fade-in`;
+        notification.innerHTML = `
+            <div class="font-bold">${title}</div>
+            <div>${message}</div>
+        `;
+        
+        // 添加到容器
+        container.appendChild(notification);
+        
+        // 3秒后移除通知
+        setTimeout(() => {
+            // 添加淡出动画
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.3s ease-out';
+            
+            // 动画结束后移除元素
+            setTimeout(() => {
+                if (notification.parentNode === container) {
+                    container.removeChild(notification);
+                }
+                
+                // 如果容器为空，移除容器
+                if (container.children.length === 0) {
+                    container.remove();
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    /**
      * 处理复制到剪贴板
      */
     handleCopyToClipboard() {
         // 检查浏览器是否支持剪贴板API
         if (!navigator.clipboard) {
-            // 创建错误通知
-            const notification = document.createElement('div');
-            notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
-            notification.innerHTML = `
-                <div class="font-bold">错误</div>
-                <div>您的浏览器不支持剪贴板API</div>
-            `;
-            document.body.appendChild(notification);
-            
-            // 3秒后移除通知
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
+            this.showNotification('错误', '您的浏览器不支持剪贴板API', 'error');
             return;
         }
         
         // 获取当前配置数据
         const currentConfig = this.getCurrentConfigData();
         if (!currentConfig) {
-            // 创建错误通知
-            const notification = document.createElement('div');
-            notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
-            notification.innerHTML = `
-                <div class="font-bold">错误</div>
-                <div>没有可复制的配置数据</div>
-            `;
-            document.body.appendChild(notification);
-            
-            // 3秒后移除通知
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
+            this.showNotification('错误', '没有可复制的配置数据', 'error');
             return;
         }
         
         // 只复制配置对象的content部分，避免复制多余的元数据字段
         navigator.clipboard.writeText(JSON.stringify(currentConfig.content, null, 2))
             .then(() => {
-                // 创建成功通知
-                const notification = document.createElement('div');
-                notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
-                notification.innerHTML = `
-                    <div class="font-bold">成功</div>
-                    <div>配置已复制到剪贴板</div>
-                `;
-                document.body.appendChild(notification);
-                
-                // 3秒后移除通知
-                setTimeout(() => {
-                    notification.remove();
-                }, 3000);
+                this.showNotification('成功', '配置已复制到剪贴板');
             })
             .catch(error => {
                 console.error('复制到剪贴板失败:', error);
-                // 创建错误通知
-                const notification = document.createElement('div');
-                notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
-                notification.innerHTML = `
-                    <div class="font-bold">错误</div>
-                    <div>复制到剪贴板失败</div>
-                `;
-                document.body.appendChild(notification);
-                
-                // 3秒后移除通知
-                setTimeout(() => {
-                    notification.remove();
-                }, 3000);
+                this.showNotification('错误', '复制到剪贴板失败', 'error');
             });
     }
 
@@ -2287,19 +2392,7 @@ class ConfigManager {
     handleClipboardImport() {
         // 检查浏览器是否支持剪贴板API
         if (!navigator.clipboard) {
-            // 创建错误通知
-            const notification = document.createElement('div');
-            notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
-            notification.innerHTML = `
-                <div class="font-bold">错误</div>
-                <div>您的浏览器不支持剪贴板API</div>
-            `;
-            document.body.appendChild(notification);
-            
-            // 3秒后移除通知
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
+            this.showNotification('错误', '您的浏览器不支持剪贴板API', 'error');
             return;
         }
         
@@ -2351,42 +2444,15 @@ class ConfigManager {
                     `;
                     document.body.appendChild(notification);
                     
-                    // 3秒后移除通知
-                    setTimeout(() => {
-                        notification.remove();
-                    }, 3000);
+                    this.showNotification('成功', '配置已从剪贴板导入');
                 } catch (error) {
                     console.error('剪贴板导入错误:', error);
-                    // 创建错误通知
-                    const notification = document.createElement('div');
-                    notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
-                    notification.innerHTML = `
-                        <div class="font-bold">错误</div>
-                        <div>无法解析剪贴板内容</div>
-                    `;
-                    document.body.appendChild(notification);
-                    
-                    // 3秒后移除通知
-                    setTimeout(() => {
-                        notification.remove();
-                    }, 3000);
+                    this.showNotification('错误', '无法解析剪贴板内容', 'error');
                 }
             })
             .catch(error => {
                 console.error('读取剪贴板错误:', error);
-                // 创建错误通知
-                const notification = document.createElement('div');
-                notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
-                notification.innerHTML = `
-                    <div class="font-bold">错误</div>
-                    <div>读取剪贴板失败</div>
-                `;
-                document.body.appendChild(notification);
-                
-                // 3秒后移除通知
-                setTimeout(() => {
-                    notification.remove();
-                }, 3000);
+                this.showNotification('错误', '读取剪贴板失败', 'error');
             });
     }
 
@@ -2602,6 +2668,386 @@ class ConfigManager {
             if (imageInput) {
                 imageInput.value = '';
             }
+        }
+    }
+
+    /**
+     * 搜索buff数据
+     */
+    searchBuffs(searchTerm) {
+        if (!searchTerm || searchTerm.trim() === '') {
+            return this.buffData;
+        }
+        
+        const term = searchTerm.toLowerCase().trim();
+        return this.buffData.filter(buff => 
+            buff['Buff ID'].toString().includes(term) ||
+            buff.DisplayName.toLowerCase().includes(term) ||
+            buff.说明.toLowerCase().includes(term) ||
+            buff.Name.toLowerCase().includes(term) ||
+            buff.分类.toLowerCase().includes(term)
+        );
+    }
+
+    /**
+     * 按分类获取buff数据
+     */
+    getBuffsByCategory(category) {
+        if (!category || category.trim() === '') {
+            return this.buffData;
+        }
+        return this.buffData.filter(buff => buff.分类 === category);
+    }
+
+    /**
+     * 获取所有buff分类
+     */
+    getBuffCategories() {
+        const categories = [...new Set(this.buffData.map(buff => buff.分类))];
+        return categories.sort();
+    }
+
+    /**
+     * 根据ID获取buff信息
+     */
+    getBuffById(buffId) {
+        return this.buffData.find(buff => buff['Buff ID'] === parseInt(buffId));
+    }
+
+    /**
+     * 显示buff选择器模态框
+     */
+    showBuffSelector(targetInput) {
+        const modal = document.getElementById('buff-selector-modal');
+        if (!modal) return;
+        
+        // 设置目标输入框
+        this.currentBuffTargetInput = targetInput;
+        
+        // 显示模态框
+        modal.classList.remove('hidden');
+        
+        // 初始化buff列表
+        this.initializeBuffSelector();
+        
+        // 绑定事件监听器
+        this.setupBuffSelectorEvents();
+    }
+
+    /**
+     * 初始化buff选择器
+     */
+    initializeBuffSelector() {
+        const searchInput = document.getElementById('buff-search-input');
+        const categoryContainer = document.getElementById('buff-categories');
+        const buffList = document.getElementById('buff-list');
+        
+        if (!searchInput || !categoryContainer || !buffList) return;
+        
+        // 填充分类按钮
+        const categories = this.getBuffCategories();
+        categoryContainer.innerHTML = '';
+        
+        // 添加"所有分类"按钮
+        const allCategoryBtn = document.createElement('button');
+        allCategoryBtn.className = 'px-3 py-1 bg-primary text-white rounded-md text-sm';
+        allCategoryBtn.textContent = '所有分类';
+        allCategoryBtn.addEventListener('click', () => {
+            // 清除其他按钮的选中状态
+            document.querySelectorAll('#buff-categories button').forEach(btn => {
+                btn.className = 'px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200';
+            });
+            allCategoryBtn.className = 'px-3 py-1 bg-primary text-white rounded-md text-sm';
+            this.displayBuffList(this.buffData);
+        });
+        categoryContainer.appendChild(allCategoryBtn);
+        
+        // 添加其他分类按钮
+        categories.forEach(category => {
+            const btn = document.createElement('button');
+            btn.className = 'px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200';
+            btn.textContent = category;
+            btn.addEventListener('click', () => {
+                // 清除其他按钮的选中状态
+                document.querySelectorAll('#buff-categories button').forEach(b => {
+                    b.className = 'px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200';
+                });
+                btn.className = 'px-3 py-1 bg-primary text-white rounded-md text-sm';
+                const filteredBuffs = this.getBuffsByCategory(category);
+                this.displayBuffList(filteredBuffs);
+            });
+            categoryContainer.appendChild(btn);
+        });
+        
+        // 显示所有buff
+        this.displayBuffList(this.buffData);
+    }
+
+    /**
+     * 设置buff选择器事件监听器
+     */
+    setupBuffSelectorEvents() {
+        const searchInput = document.getElementById('buff-search-input');
+        const closeBtn = document.getElementById('close-buff-selector');
+        const modal = document.getElementById('buff-selector-modal');
+        const cancelButton = document.getElementById('cancel-buff-selector');
+        
+        // 搜索事件
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                this.filterBuffList();
+            });
+        }
+        
+        // 关闭按钮事件
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                this.hideBuffSelector();
+            });
+        }
+        
+        // 取消按钮事件
+        if (cancelButton) {
+            cancelButton.addEventListener('click', () => {
+                this.hideBuffSelector();
+            });
+        }
+        
+        // 点击模态框外部关闭
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    this.hideBuffSelector();
+                }
+            });
+        }
+    }
+
+    /**
+     * 过滤buff列表
+     */
+    filterBuffList() {
+        const searchInput = document.getElementById('buff-search-input');
+        
+        const searchTerm = searchInput ? searchInput.value : '';
+        let filteredBuffs = this.buffData;
+        
+        // 按搜索词过滤
+        if (searchTerm.trim()) {
+            filteredBuffs = this.searchBuffs(searchTerm);
+        }
+        
+        this.displayBuffList(filteredBuffs);
+    }
+
+    /**
+     * 显示buff列表
+     */
+    displayBuffList(buffs) {
+        const buffList = document.getElementById('buff-list');
+        if (!buffList) return;
+        
+        buffList.innerHTML = '';
+        
+        if (buffs.length === 0) {
+            buffList.innerHTML = `
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fa fa-search text-2xl mb-2"></i>
+                    <p>未找到匹配的buff</p>
+                </div>
+            `;
+            return;
+        }
+        
+        buffs.forEach(buff => {
+            const buffItem = document.createElement('div');
+            buffItem.className = 'buff-item p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors mb-2';
+            buffItem.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <div class="font-medium text-sm">${buff.DisplayName}</div>
+                        <div class="text-xs text-gray-500">ID: ${buff['Buff ID']} | ${buff.Name}</div>
+                        <div class="text-xs text-gray-600 mt-1">${buff.说明}</div>
+                        <div class="text-xs text-primary mt-1">${buff.分类}</div>
+                    </div>
+                </div>
+            `;
+            
+            // 点击选择buff
+            buffItem.addEventListener('click', () => {
+                this.selectBuff(buff);
+            });
+            
+            buffList.appendChild(buffItem);
+        });
+    }
+
+    /**
+     * 选择buff
+     */
+    selectBuff(buff) {
+        if (this.currentBuffTargetInput) {
+            this.currentBuffTargetInput.value = buff['Buff ID'];
+            
+            // 触发change事件，以便其他组件可以响应
+            const event = new Event('change', { bubbles: true });
+            this.currentBuffTargetInput.dispatchEvent(event);
+        }
+        
+        this.hideBuffSelector();
+        this.showNotification('成功', `已选择buff: ${buff.DisplayName} (ID: ${buff['Buff ID']})`, 'success');
+    }
+
+    /**
+     * 隐藏buff选择器模态框
+     */
+    hideBuffSelector() {
+        const modal = document.getElementById('buff-selector-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+        
+        this.currentBuffTargetInput = null;
+    }
+
+    /**
+     * 添加buff配置项
+     */
+    addBuffConfigItem() {
+        const container = document.getElementById('buff-configs-container');
+        if (!container) return;
+        
+        const buffItem = document.createElement('div');
+        buffItem.className = 'buff-config-item bg-gray-50 p-4 rounded-lg mb-3';
+        buffItem.innerHTML = `
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-sm font-medium text-gray-700">Buff配置项</h4>
+                <button type="button" class="text-red-500 hover:text-red-700 text-sm" onclick="this.closest('.buff-config-item').remove()">
+                    <i class="fa fa-trash"></i> 删除
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">原始Buff ID</label>
+                    <div class="relative">
+                        <input type="number" placeholder="输入原始Buff ID" 
+                            class="original-buff-id w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 pr-10">
+                        <button type="button" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700" 
+                            onclick="window.configManager.showBuffSelector(this.previousElementSibling)">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">新Buff ID</label>
+                    <div class="relative">
+                        <input type="number" placeholder="输入新Buff ID" 
+                            class="new-buff-id w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 pr-10">
+                        <button type="button" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700" 
+                            onclick="window.configManager.showBuffSelector(this.previousElementSibling)">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">持续时间(秒)</label>
+                    <input type="number" step="0.1" placeholder="900.0" 
+                        class="new-buff-duration w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(buffItem);
+        
+        // 滚动到新添加的项
+        buffItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    /**
+     * 获取所有buff配置项
+     */
+    getBuffConfigs() {
+        const container = document.getElementById('buff-configs-container');
+        if (!container) return [];
+        
+        const buffConfigs = [];
+        const buffItems = container.querySelectorAll('.buff-config-item');
+        
+        buffItems.forEach(item => {
+            const originalId = item.querySelector('.original-buff-id').value;
+            const newId = item.querySelector('.new-buff-id').value;
+            const duration = item.querySelector('.new-buff-duration').value;
+            
+            if (originalId && newId && duration) {
+                buffConfigs.push({
+                    originalBuffId: originalId,
+                    newBuffId: newId,
+                    newDuration: parseFloat(duration)
+                });
+            }
+        });
+        
+        return buffConfigs;
+    }
+
+    /**
+     * 加载buff配置到编辑器
+     */
+    loadBuffConfigsToEditor(buffConfigs) {
+        const container = document.getElementById('buff-configs-container');
+        if (!container || !Array.isArray(buffConfigs)) return;
+        
+        // 清空现有配置
+        container.innerHTML = '';
+        
+        // 添加每个配置项
+        buffConfigs.forEach(config => {
+            const buffItem = document.createElement('div');
+            buffItem.className = 'buff-config-item bg-gray-50 p-4 rounded-lg mb-3';
+            buffItem.innerHTML = `
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-sm font-medium text-gray-700">Buff配置项</h4>
+                    <button type="button" class="text-red-500 hover:text-red-700 text-sm" onclick="this.closest('.buff-config-item').remove()">
+                        <i class="fa fa-trash"></i> 删除
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">原始Buff ID</label>
+                        <div class="relative">
+                            <input type="number" placeholder="输入原始Buff ID" value="${config.originalBuffId || ''}"
+                                class="original-buff-id w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 pr-10">
+                            <button type="button" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700" 
+                                onclick="window.configManager.showBuffSelector(this.previousElementSibling)">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">新Buff ID</label>
+                        <div class="relative">
+                            <input type="number" placeholder="输入新Buff ID" value="${config.newBuffId || ''}"
+                                class="new-buff-id w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 pr-10">
+                            <button type="button" class="absolute top-0 right-0 h-full px-3 text-gray-500 hover:text-gray-700" 
+                                onclick="window.configManager.showBuffSelector(this.previousElementSibling)">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">持续时间(秒)</label>
+                        <input type="number" step="0.1" placeholder="900.0" value="${config.newDuration || 900.0}"
+                            class="new-buff-duration w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30">
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(buffItem);
+        });
+        
+        // 如果没有配置项，添加一个空的
+        if (buffConfigs.length === 0) {
+            this.addBuffConfigItem();
         }
     }
 }

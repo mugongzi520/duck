@@ -59,10 +59,38 @@
                 <h1 class="text-xl md:text-2xl font-bold text-primary">配置文件管理工具</h1>
             </div>
             <div class="flex items-center space-x-4 mt-4 md:mt-0">
+                <button id="btn-feed-cat" class="flex items-center px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600 transition-colors">
+                    <i class="fa fa-cat mr-2"></i>
+                    <span>投喂猫猫</span>
+                </button>
                 <button id="btn-new-config" class="flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
                     <i class="fa fa-plus mr-2"></i>
                     <span>新建配置</span>
                 </button>
+                <!-- 图片弹窗 -->
+                <div id="cat-image-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+                    <div class="relative">
+                        <img src="shoukuan.png" alt="收款码" class="max-w-full max-h-[80vh] rounded-lg">
+                        <button id="close-modal" class="absolute -top-10 right-0 text-white bg-black/30 rounded-full w-8 h-8 flex items-center justify-center">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <script>
+                    // 弹窗逻辑
+                    document.getElementById('btn-feed-cat').addEventListener('click', function() {
+                        document.getElementById('cat-image-modal').classList.remove('hidden');
+                    });
+                    document.getElementById('close-modal').addEventListener('click', function() {
+                        document.getElementById('cat-image-modal').classList.add('hidden');
+                    });
+                    // 点击遮罩层关闭
+                    document.getElementById('cat-image-modal').addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            this.classList.add('hidden');
+                        }
+                    });
+                </script>
                 <button id="btn-import-config" class="flex items-center px-4 py-2 bg-white border border-gray-300 text-dark rounded-md hover:bg-gray-50 transition-colors">
                     <i class="fa fa-upload mr-2"></i>
                     <span>导入配置</span>
@@ -490,6 +518,33 @@
                             </div>
                         </div>
 
+                        <!-- Buff配置系统 -->
+                        <div class="mb-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold flex items-center">
+                                    <i class="fa fa-magic mr-2 text-purple-600"></i>
+                                    Buff配置系统
+                                </h3>
+                                <button id="btn-toggle-buff" class="text-primary text-sm hover:underline flex items-center">
+                                    <span id="toggle-buff-text">展开Buff配置</span>
+                                    <i class="fa fa-chevron-down ml-1"></i>
+                                </button>
+                            </div>
+                            <div id="buff-form" class="hidden">
+                                <div class="bg-purple-50 rounded-lg p-4">
+                                    <div class="mb-4">
+                                        <button type="button" id="btn-add-buff-config" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors flex items-center">
+                                            <i class="fa fa-plus mr-2"></i>
+                                            <span>添加Buff配置</span>
+                                        </button>
+                                    </div>
+                                    <div id="buff-configs-container">
+                                        <!-- Buff配置项将通过JavaScript动态添加 -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- 分解配方系统 -->
                         <div class="mb-6">
                             <div class="flex items-center justify-between mb-4">
@@ -701,6 +756,43 @@
         </div>
     </div>
 
+    <!-- Buff选择器模态框 -->
+    <div id="buff-selector-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-4xl max-h-[85vh] flex flex-col">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold">选择Buff</h3>
+                <button id="close-buff-selector" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <!-- 搜索框 -->
+                <div class="relative mb-4">
+                    <input type="text" id="buff-search-input" class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="搜索Buff名称或ID...">
+                    <i class="fa fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+                
+                <!-- 分类选择器 -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Buff分类</label>
+                    <div id="buff-categories" class="flex flex-wrap gap-2">
+                        <!-- 分类按钮将通过JavaScript动态添加 -->
+                    </div>
+                </div>
+                
+                <!-- Buff列表 -->
+                <div id="buff-list" class="max-h-[50vh] overflow-y-auto border border-gray-200 rounded-md p-2">
+                    <!-- Buff列表将通过JavaScript动态添加 -->
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-200 flex justify-end">
+                <button id="cancel-buff-selector" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors mr-2">
+                    取消
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- 新建配置模态框 -->
     <div id="new-config-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
@@ -812,6 +904,9 @@
             if (document.getElementById('btn-toggle-accessory-slots')) document.getElementById('btn-toggle-accessory-slots').addEventListener('click', toggleAccessorySlotsForm);
             // 分解配方相关
             if (document.getElementById('btn-toggle-decompose')) document.getElementById('btn-toggle-decompose').addEventListener('click', toggleDecomposeForm);
+            // Buff配置相关
+            if (document.getElementById('btn-toggle-buff')) document.getElementById('btn-toggle-buff').addEventListener('click', toggleBuffForm);
+            if (document.getElementById('btn-add-buff-config')) document.getElementById('btn-add-buff-config').addEventListener('click', () => window.configManager.addBuffConfigItem());
             
             if (document.getElementById('btn-add-cost-item')) document.getElementById('btn-add-cost-item').addEventListener('click', addCostItemRow);
             if (document.getElementById('btn-add-decompose-result')) document.getElementById('btn-add-decompose-result').addEventListener('click', addDecomposeResultRow);
@@ -970,7 +1065,7 @@
         }
 
         function addCostItemRow(itemId = '', amount = 1) {
-            const container = document.getElementById('cost-items-container');
+            const container = document.querySelector('.cost-items-container');
             const row = document.createElement('div');
             row.className = 'cost-item-row flex items-center space-x-2 mb-2';
             row.innerHTML = `
@@ -1018,6 +1113,23 @@
             } else {
                 document.getElementById('toggle-decompose-text').textContent = '展开分解配方';
                 decomposeForm.classList.add('hidden');
+            }
+        }
+
+        // Buff配置相关函数
+        function toggleBuffForm() {
+            const buffForm = document.getElementById('buff-form');
+            const isHidden = buffForm.classList.contains('hidden');
+            if (isHidden) {
+                document.getElementById('toggle-buff-text').textContent = '隐藏Buff配置';
+                buffForm.classList.remove('hidden');
+                // 初始化buff配置
+                if (window.configManager) {
+                    window.configManager.loadBuffConfigsToEditor();
+                }
+            } else {
+                document.getElementById('toggle-buff-text').textContent = '展开Buff配置';
+                buffForm.classList.add('hidden');
             }
         }
 
@@ -1245,8 +1357,12 @@
         function selectItem(item) {
             if (currentCostItemButton) {
                 const row = currentCostItemButton.closest('.cost-item-row');
-                const itemIdInput = row.querySelector('input[type="number"]:first-child');
-                itemIdInput.value = item.id;
+                if (row) {
+                    const itemIdInput = row.querySelector('input[type="number"]:first-child');
+                    if (itemIdInput) {
+                        itemIdInput.value = item.id;
+                    }
+                }
             } else if (targetInputId) {
                 // 更新指定的输入框
                 const targetInput = document.getElementById(targetInputId);
