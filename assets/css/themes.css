@@ -1,0 +1,94 @@
+/* 主题相关样式 */
+
+/* 深色主题特殊调整 */
+[data-theme="dark"] body {
+    background: var(--bg-secondary);
+}
+
+[data-theme="dark"] .header {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .sidebar {
+    border-right-color: var(--border-color);
+}
+
+[data-theme="dark"] .search-input {
+    background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .search-input:focus {
+    background: var(--bg-primary);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+[data-theme="dark"] .config-item {
+    background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .config-item:hover {
+    background: var(--bg-hover);
+}
+
+[data-theme="dark"] .welcome-tips {
+    background: var(--bg-tertiary);
+}
+
+/* 主题切换按钮动画 */
+#btn-theme-toggle {
+    position: relative;
+}
+
+#btn-theme-toggle i {
+    transition: transform var(--transition-base);
+}
+
+[data-theme="dark"] #btn-theme-toggle i::before {
+    content: "\f185"; /* sun icon */
+}
+
+[data-theme="light"] #btn-theme-toggle i::before {
+    content: "\f186"; /* moon icon */
+}
+
+/* 主题切换时的过渡效果 */
+body {
+    transition: background-color var(--transition-base),
+                color var(--transition-base);
+}
+
+.app-container,
+.header,
+.sidebar,
+.main-content,
+.config-item,
+.btn,
+.form-input,
+.form-select,
+.card,
+.modal {
+    transition: background-color var(--transition-base),
+                border-color var(--transition-base),
+                color var(--transition-base);
+}
+
+/* 打印样式 */
+@media print {
+    .header,
+    .sidebar,
+    .editor-header {
+        display: none;
+    }
+    
+    .app-container {
+        display: block;
+    }
+    
+    .editor {
+        display: block;
+    }
+    
+    .editor-content {
+        padding: 0;
+    }
+}
