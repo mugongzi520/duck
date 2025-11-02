@@ -1708,7 +1708,8 @@ export class UIManager {
             <div class="grid grid-cols-2 mb-3">
                 <div class="form-group">
                     <label class="form-label">合成标签</label>
-                    <input type="text" class="form-input recipe-tags" placeholder="逗号分隔">
+                    <input type="text" class="form-input" value="WorkBenchAdvanced (高级工作台)" readonly style="background-color: var(--bg-secondary);">
+                    <input type="hidden" class="recipe-tags" value="WorkBenchAdvanced">
                 </div>
                 <div class="form-group">
                     <label class="form-label">需要技能</label>
@@ -2485,13 +2486,8 @@ export class UIManager {
                     <div class="grid grid-cols-2 mb-3">
                         <div class="form-group">
                             <label class="form-label">合成标签</label>
-                            <select class="form-select recipe-tags">
-                                <option value="WorkBenchAdvanced" ${(recipe.CraftingTags || []).includes('WorkBenchAdvanced') ? 'selected' : ''}>WorkBenchAdvanced (高级工作台)</option>
-                                <option value="WorkBench" ${(recipe.CraftingTags || []).includes('WorkBench') ? 'selected' : ''}>WorkBench (普通工作台)</option>
-                                <option value="CraftingTable" ${(recipe.CraftingTags || []).includes('CraftingTable') ? 'selected' : ''}>CraftingTable (合成台)</option>
-                                <option value="Anvil" ${(recipe.CraftingTags || []).includes('Anvil') ? 'selected' : ''}>Anvil (铁砧)</option>
-                                <option value="Furnace" ${(recipe.CraftingTags || []).includes('Furnace') ? 'selected' : ''}>Furnace (熔炉)</option>
-                            </select>
+                            <input type="text" class="form-input" value="WorkBenchAdvanced (高级工作台)" readonly style="background-color: var(--bg-secondary);">
+                            <input type="hidden" class="recipe-tags" value="WorkBenchAdvanced">
                         </div>
                         <div class="form-group">
                             <label class="form-label">需要技能</label>
