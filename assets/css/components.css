@@ -302,13 +302,14 @@
     display: inline-flex;
     align-items: center;
     gap: var(--spacing-xs);
-    padding: var(--spacing-xs) var(--spacing-sm);
+    padding: 4px 10px;
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-full);
-    font-size: var(--font-xs);
+    font-size: 13px;
     font-weight: 500;
     color: var(--text-secondary);
+    line-height: 1.4;
 }
 
 .tag-primary {
@@ -909,6 +910,62 @@
 .modern-card:hover {
     box-shadow: var(--shadow-lg);
     transform: translateY(-2px);
+}
+
+/* 隐藏类 */
+.hidden {
+    display: none !important;
+}
+
+/* 标签下拉菜单 */
+.tag-dropdown {
+    position: fixed;
+    z-index: 10000;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    max-height: 500px;
+    min-width: 400px;
+    overflow-y: auto;
+    margin-top: 4px;
+}
+
+.tag-dropdown-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.tag-dropdown-item:hover {
+    background: var(--bg-hover);
+}
+
+.tag-dropdown-item.selected {
+    background: var(--primary-light, #e3f2fd);
+    color: var(--color-primary, #2196f3);
+}
+
+.tag-dropdown-category {
+    padding: 8px 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+/* 标签下拉菜单内容区域 */
+#tagDropdownContent {
+    max-height: 440px;
+    overflow-y: auto;
+}
+
+/* 标签输入容器 */
+.tag-input-container {
+    position: relative;
 }
 
 /* 响应式设计 */

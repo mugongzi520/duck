@@ -122,7 +122,7 @@ export const BUFF_DATA = [
     {"分类": "免疫类", "Buff ID": 1497, "Name": "1497_buff_equip_StunResist", "DisplayName": "免疫震慑", "说明": "装备提供的震慑免疫"},
 ];
 
-// 完整的100+标签数据
+// 完整的100+标签数据（扁平数组，用于兼容）
 export const TAG_DATA = [
     ["Bullet", "子弹"],
     ["Element", "元素属性"],
@@ -220,20 +220,665 @@ export const TAG_DATA = [
     ["Sticky", "粘性道具"],
 ];
 
+// 标签数据（按类别分组，用于下拉菜单）
+export const TAG_DATA_GROUPED = [
+    {
+        category: "枪械相关",
+        tags: [
+            { id: "Bullet", name: "子弹" },
+            { id: "Element", name: "元素" },
+            { id: "Accessory", name: "配件" },
+            { id: "Stock", name: "枪托" },
+            { id: "GunType_SMG", name: "枪械类型_冲锋枪" },
+            { id: "Weapon", name: "武器" },
+            { id: "Gun", name: "枪" },
+            { id: "GunType_BR", name: "枪械类型_战斗步枪" },
+            { id: "Scope", name: "瞄准镜" },
+            { id: "Muzzle", name: "枪口" },
+            { id: "GunType_PST", name: "枪械类型_手枪" },
+            { id: "GunType_SHT", name: "枪械类型_霰弹枪" },
+            { id: "GunType_AR", name: "枪械类型_突击步枪" },
+            { id: "GunType_PWS", name: "枪械类型_个人武器系统" },
+            { id: "GunType_SNP", name: "枪械类型_狙击枪" },
+            { id: "GunType_MAG", name: "枪械类型_机枪" },
+            { id: "GunType_Rifle", name: "枪械类型_步枪" },
+            { id: "GunType_Rocket", name: "枪械类型_火箭筒" },
+            { id: "GunType_ARR", name: "枪械类型_突击步枪改进型" },
+            { id: "GunType_Shot", name: "枪械类型_霰弹枪（简写）" },
+            { id: "GunType_Sniper", name: "枪械类型_狙击枪" },
+            { id: "Guajian", name: "枪械挂件" },
+            { id: "Magazine", name: "弹匣" },
+            { id: "Grip", name: "握把" },
+            { id: "Cartridge", name: "弹药筒" }
+        ]
+    },
+    {
+        category: "物品类型",
+        tags: [
+            { id: "Luxury", name: "奢侈品" },
+            { id: "Medic", name: "医疗用品" },
+            { id: "Misc", name: "杂项" },
+            { id: "Electric", name: "电子的" },
+            { id: "Tool", name: "工具" },
+            { id: "Seed", name: "种子" },
+            { id: "Weapon_LV1", name: "武器_1级" },
+            { id: "Western", name: "西部风格" },
+            { id: "Food", name: "食物" },
+            { id: "Healing", name: "治疗" },
+            { id: "Armor", name: "盔甲" },
+            { id: "Information", name: "信息" },
+            { id: "Fish", name: "鱼" },
+            { id: "Bait", name: "诱饵" },
+            { id: "Earthworm", name: "蚯蚓" },
+            { id: "Quest", name: "任务" },
+            { id: "Explosive", name: "爆炸物" },
+            { id: "TecEquip", name: "科技装备" },
+            { id: "Crop", name: "农作物" },
+            { id: "Gem", name: "宝石" },
+            { id: "MeleeWeapon", name: "近战武器" },
+            { id: "Helmat", name: "头盔" },
+            { id: "Special", name: "特殊的" },
+            { id: "Backpack", name: "背包" },
+            { id: "GamingConsole", name: "游戏主机" },
+            { id: "Equipment", name: "装备" },
+            { id: "DecorateEquipment", name: "装饰性装备" },
+            { id: "Totem", name: "图腾" },
+            { id: "Key", name: "钥匙" },
+            { id: "Continer", name: "容器" },
+            { id: "SpecialKey", name: "特殊钥匙" },
+            { id: "Injector", name: "注射器" },
+            { id: "ComputerParts_GPU", name: "电脑部件_显卡" },
+            { id: "FcController", name: "FC控制器" },
+            { id: "Shit", name: "粪便" },
+            { id: "Computer", name: "电脑" },
+            { id: "Material", name: "材料" },
+            { id: "Cash", name: "现金" },
+            { id: "Character", name: "角色" },
+            { id: "ColorCard", name: "色卡" },
+            { id: "DogTag", name: "身份牌" },
+            { id: "Drink", name: "饮品" },
+            { id: "Headset", name: "耳机" },
+            { id: "JLab", name: "实验室" },
+            { id: "Monitor", name: "显示器" },
+            { id: "SoulCube", name: "灵魂立方体" },
+            { id: "Sticky", name: "粘性的" }
+        ]
+    },
+    {
+        category: "配方相关",
+        tags: [
+            { id: "Formula", name: "配方" },
+            { id: "Formula_Blueprint", name: "配方_蓝图" },
+            { id: "Formula_Medic", name: "配方_医疗" },
+            { id: "Formula_Normal", name: "配方_普通" },
+            { id: "Formula_Cook", name: "配方_烹饪" }
+        ]
+    },
+    {
+        category: "特性标签",
+        tags: [
+            { id: "Repairable", name: "可修复的" },
+            { id: "DestroyOnLootBox", name: "开启战利品箱时销毁" },
+            { id: "Daily", name: "每日的" },
+            { id: "LockInDemo", name: "演示版中锁定" },
+            { id: "DontDropOnDeadInSlot", name: "死亡时槽位物品不掉落" },
+            { id: "DestroyInBase", name: "在基地中销毁" },
+            { id: "FaceMask", name: "面罩" },
+            { id: "AdvancedDebuffMode", name: "高级减益模式" },
+            { id: "MiniGame", name: "迷你游戏" },
+            { id: "NotForSell", name: "非卖品" },
+            { id: "NotSellable", name: "不可出售" },
+            { id: "NotNested", name: "不可嵌套" }
+        ]
+    },
+    {
+        category: "环境相关",
+        tags: [
+            { id: "Fish_OnlyDay", name: "鱼_仅白天出现" },
+            { id: "Fish_OnlyNight", name: "鱼_仅夜间出现" },
+            { id: "Fish_OnlySunDay", name: "鱼_仅晴天出现" },
+            { id: "Fish_OnlyRainDay", name: "鱼_仅雨天出现" },
+            { id: "Fish_Special", name: "鱼_特殊" },
+            { id: "Fish_OnlyStorm", name: "鱼_仅暴风雨天出现" },
+            { id: "Fish_Other", name: "鱼_其他" }
+        ]
+    }
+];
+
+// 武器属性说明字典 - 基于武器数据详解文档
+export const WEAPON_FIELD_DESCRIPTIONS = {
+    // 基础性能倍率
+    'DistanceMultiplier': {
+        name: '射程倍率',
+        description: '武器射程，子弹超过射程会直接消失。这是一个系数（倍数），用于加成武器射程。',
+        formula: '实际射程 = 基础射程 × DistanceMultiplier',
+        default: 1.0
+    },
+    'BulletSpeedMultiplier': {
+        name: '子弹速度倍率',
+        description: '子弹速度系数（倍数），用于加成子弹面板的子弹速度。',
+        formula: '实际子弹速度 = 子弹面板速度 × BulletSpeedMultiplier',
+        default: 1.0
+    },
+    'ADSTimeMultiplier': {
+        name: '瞄准时间倍率',
+        description: '从腰射散布切换到瞄准散布所需的时间（开镜完成之前依照腰射进行后座与扩散结算）。',
+        default: 1.0
+    },
+    'ShootSpeedMultiplier': {
+        name: '射击速度倍率',
+        description: '影响武器连射的基础射速。更快的射速能一定程度上影响武器的散布手感。',
+        default: 1.0
+    },
+    'CapacityMultiplier': {
+        name: '容量倍率',
+        description: '弹匣容量的倍率，会受配件效果影响。',
+        default: 1.0
+    },
+    'ReloadSpeedMultiplier': {
+        name: '换弹速度倍率',
+        description: '武器的换弹时间（单位「秒」），数值越小换弹越快。',
+        default: 1.0
+    },
+    
+    // 伤害系统倍率
+    'BaseDamageMultiplier': {
+        name: '基础伤害倍率',
+        description: '保证武器的最低伤害不为0的保底机制（俗称钝伤）。如果武器的基础伤害经过计算后仍然低于此值，就强制把伤害设为该值。',
+        formula: '最终伤害 = max(计算后伤害, 基础伤害 × BaseDamageMultiplier)',
+        default: 1.0
+    },
+    'DamageMultiplier': {
+        name: '伤害倍率（面板属性）',
+        description: '武器对敌人在优势射程应造成的基础伤害。',
+        default: 1.0
+    },
+    'CriticalChanceMultiplier': {
+        name: '暴击率倍率',
+        description: '打中人时的暴击概率（对枪械无效）。',
+        default: 1.0
+    },
+    'CriticalDamageFactorMultiplier': {
+        name: '暴击伤害倍率倍率',
+        description: '暴击伤害系数的倍率。',
+        default: 1.0
+    },
+    'PenetrateMultiplier': {
+        name: '穿透倍率',
+        description: '子弹穿透敌方单位能力的倍率，默认为0（1也没用）。',
+        default: 1.0
+    },
+    'ArmorPiercingMultiplier': {
+        name: '穿甲倍率',
+        description: '对敌人护甲的穿透能力的修正值倍率，基于（1-6级弹）的穿透效果附加额外的穿甲等级。',
+        default: 1.0
+    },
+    'ArmorBreakMultiplier': {
+        name: '破甲倍率',
+        description: '攻击对敌人护甲耐久造成的破坏程度的倍率，数值越高，摧毁护甲的效率越快。',
+        default: 1.0
+    },
+    'ExplosionDamageMultiplier': {
+        name: '爆炸伤害倍率',
+        description: '若武器有爆炸效果，此为爆炸伤害的倍数（当前为0则无额外爆炸伤害加成）。',
+        default: 1.0
+    },
+    'ExplosionRangeMultiplier': {
+        name: '爆炸范围倍率',
+        description: '爆炸范围的倍率。',
+        default: 1.0
+    },
+    'RangeAddition': {
+        name: '射程加成',
+        description: '在全射程里面能够打出全额伤害的射程距离（加法）。',
+        formula: '全额伤害射程 = 基础射程 + RangeAddition',
+        default: 0
+    },
+    'BulletSpeedAddition': {
+        name: '子弹速度加成（面板属性）',
+        description: '使用枪械时发射子弹的速度加成（加法）。',
+        formula: '实际子弹速度 = 子弹速度 × BulletSpeedMultiplier + BulletSpeedAddition',
+        default: 0
+    },
+    
+    // 精度系统倍率
+    'AccuracyMultiplier': {
+        name: '精度倍率',
+        description: '精度倍数，效果不明显或无效。',
+        default: 1.0
+    },
+    'ScatterFactorMultiplier': {
+        name: '腰射散布系数（面板属性）',
+        description: '腰射状态下真正影响子弹散布的系数，同时也是面板显示的数据。在全局层面控制整个散布。',
+        default: 1.0
+    },
+    'ScatterFactorADSMultiplier': {
+        name: '开镜散布系数（面板属性）',
+        description: '瞄准状态下真正影响子弹散布的系数，同时也是面板显示的数据。',
+        default: 1.0
+    },
+    'DefaultScatterMultiplier': {
+        name: '腰射初始散布倍率',
+        description: '腰射状态下初始准星散布大小的倍率（官方数值普遍低于0.1）。实际应用时会乘以腰射散布系数。',
+        default: 1.0
+    },
+    'DefaultScatterADSMultiplier': {
+        name: '开镜初始散布倍率',
+        description: '瞄准状态下初始准星散布值的倍率。实际应用时会乘以开镜散布系数。',
+        default: 1.0
+    },
+    'MaxScatterMultiplier': {
+        name: '腰射最大散布倍率',
+        description: '腰射状态下准星最大散布幅度的倍率。达到该值后每次开火导致的准星扩散幅度会立刻变为原来的1/6。',
+        default: 1.0
+    },
+    'MaxScatterADSMultiplier': {
+        name: '开镜最大散布倍率',
+        description: '瞄准状态下准星最大散布幅度的倍率。达到该值后每次开火导致的准星扩散幅度会立刻变为原来的1/6。',
+        default: 1.0
+    },
+    'ScatterGrowMultiplier': {
+        name: '腰射散布扩散倍率',
+        description: '腰射连续开火状态下，每游戏刻之间准星扩散至最大散布的速率的倍率。',
+        default: 1.0
+    },
+    'ScatterGrowADSMultiplier': {
+        name: '开镜散布扩散倍率',
+        description: '瞄准连续开火状态下，每游戏刻之间准星扩散至最大散布的速率的倍率。',
+        default: 1.0
+    },
+    'ScatterRecoverMultiplier': {
+        name: '腰射散布恢复倍率',
+        description: '腰射状态下，每游戏刻之间准星自然恢复到初始散布的速率的倍率。如果散布恢复≥散布扩散，则除去散布系数与初始散布外的值都不生效。',
+        default: 1.0
+    },
+    'ScatterRecoverADSMultiplier': {
+        name: '开镜散布恢复倍率',
+        description: '瞄准状态下，每游戏刻之间准星自然恢复到初始散布的速率的倍率。',
+        default: 1.0
+    },
+    
+    // 后坐力系统倍率
+    'RecoilVMinMultiplier': {
+        name: '垂直最小后坐力倍率',
+        description: '垂直后坐力最小值的倍率。',
+        default: 1.0
+    },
+    'RecoilVMaxMultiplier': {
+        name: '垂直最大后坐力倍率',
+        description: '垂直后坐力最大值的倍率。',
+        default: 1.0
+    },
+    'RecoilHMinMultiplier': {
+        name: '水平最小后坐力倍率',
+        description: '水平后坐力最小值（向左）的倍率。',
+        default: 1.0
+    },
+    'RecoilHMaxMultiplier': {
+        name: '水平最大后坐力倍率',
+        description: '水平后坐力最大值（向右）的倍率。',
+        default: 1.0
+    },
+    'RecoilScaleVMultiplier': {
+        name: '垂直后坐力缩放倍率（面板属性）',
+        description: '垂直后坐力数据，直接显示在面板上，提供基础后坐力。从垂直后坐力的最大最小值范围内随机抽取一个值，并将其乘以后坐力系数。',
+        default: 1.0
+    },
+    'RecoilScaleHMultiplier': {
+        name: '水平后坐力缩放倍率（面板属性）',
+        description: '水平后坐力数据，直接显示在面板上，提供基础后坐力。从水平后坐力的最大最小值范围内随机抽取一个值，并将其乘以后坐力系数。',
+        default: 1.0
+    },
+    'RecoilRecoverMultiplier': {
+        name: '后坐力恢复倍率',
+        description: '装备枪械时准星自动回正的速度倍率。自动武器的后坐力恢复明显高于半自动武器。',
+        default: 1.0
+    },
+    'RecoilTimeMultiplier': {
+        name: '后坐力时间倍率',
+        description: '单次后坐力效果持续作用于准星的时间倍率。更大的数值会让单段后坐力更轻柔（但叠加在一起），更小的数值会让单次后坐力更快生效，同时让连续射击时准星的落点趋于抖动。',
+        default: 1.0
+    },
+    'RecoilRecoverTimeMultiplier': {
+        name: '后坐力恢复时间倍率',
+        description: '此项数据为"控枪"属性，用于停火后开始将偏离鼠标指针的拉回鼠标指针所需要的时间长短（如果准星回正则停止生效），该值与"后坐力恢复"共同影响后坐力恢复效率。',
+        default: 1.0
+    },
+    
+    // 移动性能倍率
+    'MoveSpeedMultiplierAdd': {
+        name: '移动速度倍率加成',
+        description: '直接增加装备武器时的人物移动速度，数值越高，机动性越强。',
+        formula: '实际移动速度 = 人物面板移速 × (1 + MoveSpeedMultiplierAdd)',
+        default: 0.0
+    },
+    'ADSMoveSpeedMultiplierAdd': {
+        name: '开镜移动速度倍率加成',
+        description: '瞄准时人物的移动速度（公式同上）。',
+        formula: '开镜移动速度 = 人物面板移速 × (1 + ADSMoveSpeedMultiplierAdd)',
+        default: 0.0
+    },
+    'ADSAimDistanceFactorMultiplier': {
+        name: '瞄准距离因子倍率',
+        description: '瞄准状态下的可见视野距离倍率（高倍镜开镜会强制移动准星）。',
+        default: 1.0
+    },
+    
+    // Hash属性（直接值，非倍率）
+    'CritDamageFactorHash': {
+        name: '暴击伤害系数',
+        description: '发生暴击时的伤害倍率（Hash属性，直接值）。',
+        default: 0
+    },
+    'PenetrateHash': {
+        name: '穿透能力',
+        description: '子弹穿透敌方单位能力（Hash属性，直接值），默认为0（1也没用）。',
+        default: 0
+    },
+    'ArmorPiercingHash': {
+        name: '护甲穿透',
+        description: '对敌人护甲的穿透能力的修正值（Hash属性，直接值），基于（1-6级弹）的穿透效果附加额外的穿甲等级。',
+        default: 0
+    },
+    'ArmorBreakHash': {
+        name: '护甲破坏',
+        description: '攻击对敌人护甲耐久造成的破坏程度（Hash属性，直接值），数值越高，摧毁护甲的效率越快。',
+        default: 0
+    },
+    'explosionDamageMultiplierHash': {
+        name: '爆炸伤害乘数',
+        description: '若武器有爆炸效果，此为爆炸伤害的倍数（Hash属性，直接值），当前为0则无额外爆炸伤害加成。',
+        default: 0
+    },
+    'ShotCountHash': {
+        name: '射击次数',
+        description: '一次射击发射的子弹数量（Hash属性，直接值），如霰弹枪的弹丸数，会稀释总伤害，正常枪械数字为1并发射独头弹。',
+        default: 0
+    },
+    'ShotAngleHash': {
+        name: '射击角度',
+        description: '霰弹子弹弹头散布的角度范围（Hash属性，直接值），数值越小，弹头越集中。比如填入10度就是腰射时方向左右各5度，瞄准时为左右各2.5度。但是实际效果还受到散布系数影响。',
+        default: 0
+    },
+    'BurstCountHash': {
+        name: '爆发模式连射次数',
+        description: '切换武器的射击模式，让单次射击（点一下左键）的射击变为连射x次的效果并扣除对应载弹量（Hash属性，直接值）。',
+        default: 0
+    },
+    'SoundRangeHash': {
+        name: '声音范围',
+        description: '武器射击时声音传播的范围（Hash属性，直接值），数值越大，敌人会发现枪声察觉的范围越大。',
+        default: 0
+    },
+    'ADSAimDistanceFactorHash': {
+        name: '瞄准距离系数',
+        description: '瞄准状态下的可见视野距离（Hash属性，直接值），高倍镜开镜会强制移动准星。',
+        default: 0
+    },
+    'ReloadTimeHash': {
+        name: '上膛时间',
+        description: '单位时间内的子弹上膛时间（Hash属性，直接值），使用范围可能是栓动或者半自动范围，但也有其他作者解释该词条被取消了。',
+        default: 0
+    },
+    'ScatterFactorHash': {
+        name: '常规散布系数',
+        description: '腰射散布系数（Hash属性，直接值）。',
+        default: 0
+    },
+    'ScatterFactorHashADS': {
+        name: '瞄准散布系数',
+        description: '开镜散布系数（Hash属性，直接值）。',
+        default: 0
+    },
+    'DefaultScatterHashADS': {
+        name: '瞄准默认散布',
+        description: '开镜初始散布（Hash属性，直接值）。',
+        default: 0
+    },
+    'MaxScatterHash': {
+        name: '常规最大散布',
+        description: '腰射最大散布（Hash属性，直接值）。',
+        default: 0
+    },
+    'MaxScatterHashADS': {
+        name: '瞄准最大散布',
+        description: '开镜最大散布（Hash属性，直接值）。',
+        default: 0
+    },
+    'ScatterGrowHash': {
+        name: '常规散布增长',
+        description: '腰射散布增长（Hash属性，直接值）。',
+        default: 0
+    },
+    'ScatterGrowHashADS': {
+        name: '瞄准散布增长',
+        description: '开镜散布增长（Hash属性，直接值）。',
+        default: 0
+    },
+    'ScatterRecoverHash': {
+        name: '常规散布恢复',
+        description: '腰射散布恢复（Hash属性，直接值）。',
+        default: 0
+    },
+    'ScatterRecoverHashADS': {
+        name: '瞄准散布恢复',
+        description: '开镜散布恢复（Hash属性，直接值）。',
+        default: 0
+    },
+    'RecoilVMiniHash': {
+        name: '垂直后坐力最小值',
+        description: '垂直后坐力最小值（Hash属性，直接值）。',
+        default: 0
+    },
+    'RecoilVMaxHash': {
+        name: '垂直后坐力最大值',
+        description: '垂直后坐力最大值（Hash属性，直接值）。',
+        default: 0
+    },
+    'RecoilHMinHash': {
+        name: '水平后坐力最小值',
+        description: '水平后坐力最小值（Hash属性，直接值）。',
+        default: 0
+    },
+    'RecoilHMaxHash': {
+        name: '水平后坐力最大值',
+        description: '水平后坐力最大值（Hash属性，直接值）。',
+        default: 0
+    },
+    'RecoilScaleHash': {
+        name: '后坐力缩放',
+        description: '后坐力缩放（Hash属性，直接值）。',
+        default: 0
+    },
+    'RecoilRecoverHash': {
+        name: '后坐力恢复',
+        description: '装备枪械时准星自动回正的速度（Hash属性，直接值）。',
+        default: 0
+    },
+    'RecoilTimeHash': {
+        name: '后坐力时间',
+        description: '单次后坐力效果持续作用于准星的时间（Hash属性，直接值）。',
+        default: 0
+    },
+    'RecoilRecoverTimeHash': {
+        name: '后坐力恢复时间',
+        description: '停火后开始将偏离鼠标指针的拉回鼠标指针所需要的时间长短（Hash属性，直接值）。',
+        default: 0
+    },
+    'CapacityHash': {
+        name: '弹匣容量',
+        description: '武器最大载弹数（Hash属性，直接值），会受配件效果影响。',
+        default: 0
+    },
+    'BuffChanceHash': {
+        name: '增益触发概率',
+        description: '属性武器命中为敌人施加异常效果的概率（Hash属性，直接值），值为1时必然触发。',
+        default: 0
+    },
+    'BulletBleedChanceHash': {
+        name: '子弹出血概率',
+        description: '子弹出血概率（Hash属性，直接值），无影响，该数据应在子弹上生效。',
+        default: 0
+    },
+    'bulletDurabilityCostHash': {
+        name: '子弹耐久消耗',
+        description: '与发射的子弹耐久消耗做加法（Hash属性，直接值）。枪械开火耐久消耗 = 枪械本身子弹耐久消耗 + 子弹数据上耐久消耗。',
+        default: 0
+    }
+};
+
+// 武器属性字段映射 - 基于官方数据详解（保留用于向后兼容）
+export const WEAPON_FIELDS = {
+    // 基础属性
+    'Damage': { label: '伤害', type: 'number', step: '1', default: 16, description: '武器基础伤害值' },
+    'ShootSpeed': { label: '射速', type: 'number', step: '1', default: 10, description: '武器连射的基础射速' },
+    'Capacity': { label: '弹匣容量', type: 'number', step: '1', default: 30, description: '武器最大载弹数' },
+    'ReloadTime': { label: '换弹时间', type: 'number', step: '0.1', default: 3, description: '换弹时间（秒）' },
+    'BrustCount': { label: '连射次数', type: 'number', step: '1', default: 1, description: '单次射击的连发数' },
+    'BulletSpeed': { label: '子弹速度', type: 'number', step: '1', default: 118, description: '子弹飞行速度' },
+    'BulletDistance': { label: '优势射程', type: 'number', step: '1', default: 23, description: '控制伤害衰减的射程' },
+    'Penetrate': { label: '单位穿透', type: 'number', step: '1', default: 0, description: '子弹穿透能力（通常无效）' },
+    'CritRate': { label: '暴击率', type: 'number', step: '0.01', default: 0.13, description: '暴击概率' },
+    'CritDamageFactor': { label: '暴击伤害倍率', type: 'number', step: '0.1', default: 1.45, description: '暴击时的伤害倍数' },
+    'ArmorPiercing': { label: '穿甲等级', type: 'number', step: '1', default: 0, description: '护甲穿透等级' },
+    'ArmorBreak': { label: '破甲值', type: 'number', step: '1', default: 0, description: '对护甲耐久的破坏程度' },
+    'ShotPerRound': { label: '单发弹丸数', type: 'number', step: '1', default: 1, description: '一次射击发射的子弹数量' },
+    'SingleShotAngle': { label: '单发散布角度', type: 'number', step: '1', default: 0, description: '霰弹枪弹头散布角度' },
+    'SoundRange': { label: '声音传播范围', type: 'number', step: '0.1', default: 27.2, description: '枪声传播距离' },
+    'ADSAimDistanceFactor': { label: '瞄准范围系数', type: 'number', step: '0.1', default: 1, description: '瞄准状态下的视野距离' },
+    'ADSTime': { label: '开镜时间', type: 'number', step: '0.01', default: 0.65, description: '从腰射切换到瞄准的时间' },
+    'MoveSpeedMultiplier': { label: '据枪移动速度系数', type: 'number', step: '0.01', default: 0.85, description: '持枪时的移动速度系数' },
+    'ADS Movement Coefficient': { label: '开镜移动速度系数', type: 'number', step: '0.01', default: 0.45, description: '瞄准时的移动速度系数' },
+    'Explosion DMG Coefficient': { label: '爆炸伤害系数', type: 'number', step: '0.1', default: 1, description: '爆炸伤害倍数' },
+    
+    // 散布相关属性
+    'Hip Fire Basic Spread': { label: '腰射基础散布', type: 'number', step: '0.001', default: 0.301, description: '腰射初始散布值' },
+    'Hip Fire Max Spread': { label: '腰射最大散布', type: 'number', step: '0.001', default: 0.96, description: '腰射最大散布值' },
+    'Hip Fire Spread Growth': { label: '腰射散布增长', type: 'number', step: '0.001', default: 0.261, description: '腰射散布增长速率' },
+    'Hip Fire Spread Recovery': { label: '腰射散布恢复', type: 'number', step: '0.001', default: 0.22, description: '腰射散布恢复速率' },
+    'ADS Initial Spread': { label: '开镜初始散布', type: 'number', step: '0.001', default: 0.324, description: '瞄准初始散布值' },
+    'ADS Max Spread': { label: '开镜最大散布', type: 'number', step: '0.001', default: 0.945, description: '瞄准最大散布值' },
+    'ADS Spread Growth': { label: '开镜散布增长', type: 'number', step: '0.001', default: 0.27, description: '瞄准散布增长速率' },
+    'ADS Spread Recovery': { label: '瞄准散布恢复', type: 'number', step: '0.001', default: 0.4, description: '瞄准散布恢复速率' },
+    'Hip Fire Spread': { label: '腰射散布（面板）', type: 'number', step: '0.1', default: 37.5, description: '显示在武器面板上的腰射散布' },
+    'ADS Spread': { label: '瞄准散布（面板）', type: 'number', step: '0.1', default: 10.79, description: '显示在武器面板上的瞄准散布' },
+    
+    // 后坐力相关属性
+    'Min Vertical Recoil': { label: '最小垂直后坐力', type: 'number', step: '0.001', default: 0.927, description: '垂直后坐力最小值' },
+    'Max Vertical Recoil': { label: '最大垂直后坐力', type: 'number', step: '0.001', default: 1.073, description: '垂直后坐力最大值' },
+    'Min Horizontal Recoil': { label: '最小水平后坐力', type: 'number', step: '0.001', default: -0.333, description: '水平后坐力最小值（向左）' },
+    'Max Horizontal Recoil': { label: '最大水平后坐力', type: 'number', step: '0.001', default: 0.667, description: '水平后坐力最大值（向右）' },
+    'Horizontal Recoil Range': { label: '水平后坐力范围', type: 'string', step: '', default: '-0.333 ~ 0.667', description: '水平后坐力范围' },
+    'Recoil Time': { label: '后坐力时间', type: 'number', step: '0.001', default: 0.075, description: '单次后坐力作用时间' },
+    'Recoil Recovery Time': { label: '后坐力恢复时间', type: 'number', step: '0.001', default: 0.12, description: '停火后开始回正的时间' },
+    'Recoil Recovery': { label: '后坐力恢复值', type: 'number', step: '1', default: 500, description: '准星自动回正速度' },
+    
+    // 其他属性
+    'Flashlight': { label: '战术手电', type: 'number', step: '1', default: 0, description: '是否配备战术手电' },
+};
+
+// 武器属性倍率字段映射
+export const WEAPON_MULTIPLIER_FIELDS = {
+    // 基础倍率
+    'DistanceMultiplier': { label: '射程倍率', type: 'number', step: '0.1', default: 1.0, description: '武器射程倍数' },
+    'BulletSpeedMultiplier': { label: '子弹速度倍率', type: 'number', step: '0.1', default: 1.0, description: '子弹速度倍数' },
+    'ADSTimeMultiplier': { label: '瞄准时间倍率', type: 'number', step: '0.1', default: 1.0, description: '开镜时间倍数' },
+    'BaseDamageMultiplier': { label: '基础伤害倍率', type: 'number', step: '0.1', default: 1.0, description: '基础伤害倍数（保底机制）' },
+    'RangeAddition': { label: '射程加成', type: 'number', step: '1', default: 0, description: '全额伤害射程加成' },
+    'BulletSpeedAddition': { label: '子弹速度加成', type: 'number', step: '1', default: 0, description: '子弹速度加成值' },
+    'CriticalChanceMultiplier': { label: '暴击率倍率', type: 'number', step: '0.01', default: 1.0, description: '暴击率倍数（对枪械无效）' },
+    'ReloadSpeedMultiplier': { label: '换弹速度倍率', type: 'number', step: '0.1', default: 1.0, description: '换弹时间倍数' },
+    'AccuracyMultiplier': { label: '精度倍率', type: 'number', step: '0.1', default: 1.0, description: '精度倍数（效果不明显）' },
+    'DamageMultiplier': { label: '伤害倍率', type: 'number', step: '0.1', default: 1.0, description: '武器伤害倍数' },
+    'CritDamageFactorHash': { label: '暴击伤害系数', type: 'number', step: '0.1', default: 1.0, description: '暴击伤害倍数' },
+    'PenetrateHash': { label: '穿透倍率', type: 'number', step: '0.1', default: 1.0, description: '穿透能力倍数' },
+    'ArmorPiercingHash': { label: '护甲穿透倍率', type: 'number', step: '0.1', default: 1.0, description: '护甲穿透倍数' },
+    'ArmorBreakHash': { label: '护甲破坏倍率', type: 'number', step: '0.1', default: 1.0, description: '护甲破坏倍数' },
+    'explosionDamageMultiplierHash': { label: '爆炸伤害乘数', type: 'number', step: '0.1', default: 1.0, description: '爆炸伤害倍数' },
+    'ExplosionRangeMultiplier': { label: '爆炸范围倍率', type: 'number', step: '0.1', default: 1.0, description: '爆炸范围倍数' },
+    'ShotCountMultiplier': { label: '霰弹枪弹头数倍率', type: 'number', step: '0.1', default: 1.0, description: '霰弹枪弹头数倍数' },
+    'ShotAngleMultiplier': { label: '霰弹枪弹头散布角度倍率', type: 'number', step: '0.1', default: 1.0, description: '霰弹枪散布角度倍数' },
+    'BurstCountHash': { label: '爆发模式连射次数', type: 'number', step: '1', default: 1, description: '单次射击连发数' },
+    'SoundRangeHash': { label: '声音范围倍率', type: 'number', step: '0.1', default: 1.0, description: '声音传播范围倍数' },
+    'ADSAimDistanceFactorHash': { label: '瞄准距离系数倍率', type: 'number', step: '0.1', default: 1.0, description: '瞄准距离倍数' },
+    'ReloadTimeHash': { label: '上膛时间倍率', type: 'number', step: '0.1', default: 1.0, description: '上膛时间倍数' },
+    
+    // 散布倍率
+    'ScatterFactorMultiplier': { label: '腰射散布系数', type: 'number', step: '0.1', default: 1.0, description: '腰射散布系数（面板显示）' },
+    'ScatterFactorADSMultiplier': { label: '开镜散布系数', type: 'number', step: '0.1', default: 1.0, description: '开镜散布系数（面板显示）' },
+    'DefaultScatterMultiplier': { label: '腰射初始散布倍率', type: 'number', step: '0.1', default: 1.0, description: '腰射初始散布倍数' },
+    'DefaultScatterADSMultiplier': { label: '开镜初始散布倍率', type: 'number', step: '0.1', default: 1.0, description: '开镜初始散布倍数' },
+    'MaxScatterMultiplier': { label: '腰射最大散布倍率', type: 'number', step: '0.1', default: 1.0, description: '腰射最大散布倍数' },
+    'MaxScatterADSMultiplier': { label: '开镜最大散布倍率', type: 'number', step: '0.1', default: 1.0, description: '开镜最大散布倍数' },
+    'ScatterGrowMultiplier': { label: '腰射散布扩散倍率', type: 'number', step: '0.1', default: 1.0, description: '腰射散布增长倍数' },
+    'ScatterGrowADSMultiplier': { label: '开镜散布扩散倍率', type: 'number', step: '0.1', default: 1.0, description: '开镜散布增长倍数' },
+    'ScatterRecoverMultiplier': { label: '腰射散布恢复倍率', type: 'number', step: '0.1', default: 1.0, description: '腰射散布恢复倍数' },
+    'ScatterRecoverADSMultiplier': { label: '开镜散布恢复倍率', type: 'number', step: '0.1', default: 1.0, description: '开镜散布恢复倍数' },
+    
+    // 后坐力倍率
+    'RecoilScaleVMultiplier': { label: '垂直后坐力系数倍率', type: 'number', step: '0.1', default: 1.0, description: '垂直后坐力系数倍数（面板显示）' },
+    'RecoilScaleHMultiplier': { label: '水平后坐力系数倍率', type: 'number', step: '0.1', default: 1.0, description: '水平后坐力系数倍数（面板显示）' },
+    'RecoilVMiniHash': { label: '垂直后坐力最小值倍率', type: 'number', step: '0.1', default: 1.0, description: '垂直后坐力最小值倍数' },
+    'RecoilVMaxHash': { label: '垂直后坐力最大值倍率', type: 'number', step: '0.1', default: 1.0, description: '垂直后坐力最大值倍数' },
+    'RecoilHMinHash': { label: '水平后坐力最小值倍率', type: 'number', step: '0.1', default: 1.0, description: '水平后坐力最小值倍数' },
+    'RecoilHMaxHash': { label: '水平后坐力最大值倍率', type: 'number', step: '0.1', default: 1.0, description: '水平后坐力最大值倍数' },
+    'RecoilRecoverHash': { label: '后坐力恢复倍率', type: 'number', step: '0.1', default: 1.0, description: '后坐力恢复速度倍数' },
+    'RecoilTimeHash': { label: '后坐力时间倍率', type: 'number', step: '0.1', default: 1.0, description: '后坐力作用时间倍数' },
+    'RecoilRecoverTimeHash': { label: '后坐力恢复时间倍率', type: 'number', step: '0.1', default: 1.0, description: '后坐力恢复开始时间倍数' },
+    
+    // 其他倍率
+    'CapacityHash': { label: '弹匣容量倍率', type: 'number', step: '0.1', default: 1.0, description: '弹匣容量倍数' },
+    'BuffChanceHash': { label: '增益触发概率倍率', type: 'number', step: '0.01', default: 1.0, description: '异常效果触发概率倍数' },
+    'BulletBleedChanceHash': { label: '子弹出血概率倍率', type: 'number', step: '0.01', default: 1.0, description: '子弹出血概率倍数（无效）' },
+    'bulletDurabilityCostHash': { label: '子弹耐久消耗倍率', type: 'number', step: '0.1', default: 1.0, description: '子弹耐久消耗倍数' },
+    'MoveSpeedMultiplierAdd': { label: '据枪移动系数加成', type: 'number', step: '0.01', default: 0, description: '持枪移动速度直接加成' },
+    'ADSMoveSpeedMultiplierAdd': { label: '开镜移动系数加成', type: 'number', step: '0.01', default: 0, description: '瞄准移动速度直接加成' },
+};
+
 // 字段配置 - 不同类型配置的特定字段
 export const TYPE_SPECIFIC_FIELDS = {
     [CONFIG_TYPES.WEAPON]: {
-        'DistanceMultiplier': '射程',
-        'BulletSpeedMultiplier': '子弹速度',
-        'ADSTimeMultiplier': '瞄准时间',
-        'BaseDamageMultiplier': '基础伤害',
-        'CriticalChanceMultiplier': '暴击率',
-        'ReloadSpeedMultiplier': '换弹速度',
-        'AccuracyMultiplier': '精度',
-        'RecoilVMinMultiplier': '垂直后坐力最小值',
-        'RecoilVMaxMultiplier': '垂直后坐力最大值',
-        'RecoilHMinMultiplier': '水平后坐力最小值',
-        'RecoilHMaxMultiplier': '水平后坐力最大值',
+        // 基础属性
+        'DistanceMultiplier': '射程倍率',
+        'BulletSpeedMultiplier': '子弹速度倍率',
+        'ADSTimeMultiplier': '瞄准时间倍率',
+        'BaseDamageMultiplier': '基础伤害倍率',
+        'CriticalChanceMultiplier': '暴击率倍率',
+        'ReloadSpeedMultiplier': '换弹速度倍率',
+        'AccuracyMultiplier': '精度倍率',
+        'DamageMultiplier': '伤害倍率',
+        'CritDamageFactorHash': '暴击伤害系数',
+        'ArmorPiercingHash': '护甲穿透倍率',
+        'ArmorBreakHash': '护甲破坏倍率',
+        
+        // 散布相关
+        'ScatterFactorMultiplier': '腰射散布系数',
+        'ScatterFactorADSMultiplier': '开镜散布系数',
+        'DefaultScatterMultiplier': '腰射初始散布倍率',
+        'DefaultScatterADSMultiplier': '开镜初始散布倍率',
+        'MaxScatterMultiplier': '腰射最大散布倍率',
+        'MaxScatterADSMultiplier': '开镜最大散布倍率',
+        'ScatterGrowMultiplier': '腰射散布扩散倍率',
+        'ScatterGrowADSMultiplier': '开镜散布扩散倍率',
+        'ScatterRecoverMultiplier': '腰射散布恢复倍率',
+        'ScatterRecoverADSMultiplier': '开镜散布恢复倍率',
+        
+        // 后坐力相关
+        'RecoilScaleVMultiplier': '垂直后坐力系数倍率',
+        'RecoilScaleHMultiplier': '水平后坐力系数倍率',
+        'RecoilVMiniHash': '垂直后坐力最小值倍率',
+        'RecoilVMaxHash': '垂直后坐力最大值倍率',
+        'RecoilHMinHash': '水平后坐力最小值倍率',
+        'RecoilHMaxHash': '水平后坐力最大值倍率',
+        'RecoilRecoverHash': '后坐力恢复倍率',
+        'RecoilTimeHash': '后坐力时间倍率',
+        'RecoilRecoverTimeHash': '后坐力恢复时间倍率',
+        
+        // 其他
+        'CapacityHash': '弹匣容量倍率',
+        'BuffChanceHash': '增益触发概率倍率',
+        'MoveSpeedMultiplierAdd': '据枪移动系数加成',
+        'ADSMoveSpeedMultiplierAdd': '开镜移动系数加成',
     },
     [CONFIG_TYPES.MELEE]: {
         'NewDamage': '伤害值',
@@ -244,16 +889,16 @@ export const TYPE_SPECIFIC_FIELDS = {
         'NewAttackRange': '攻击范围',
     },
     [CONFIG_TYPES.AMMO]: {
-        'NewCritRateGain': '暴击率',
-        'NewCritDamageFactorGain': '暴击伤害',
-        'NewArmorPiercingGain': '护甲穿透',
-        'NewDamageMultiplier': '伤害',
+        'NewCritRateGain': '暴击率增益',
+        'NewCritDamageFactorGain': '暴击伤害增益',
+        'NewArmorPiercingGain': '护甲穿透增益',
+        'NewDamageMultiplier': '伤害倍率',
         'NewBulletSpeed': '子弹速度',
     },
     [CONFIG_TYPES.ACCESSORY]: {
         'Damage': '伤害',
         'CritRate': '暴击率',
-        'CritDamageFactor': '暴击伤害',
+        'CritDamageFactor': '暴击伤害倍率',
         'ADSTime': '瞄准时间',
         'AttackSpeed': '攻击速度',
         'BulletSpeed': '子弹速度',

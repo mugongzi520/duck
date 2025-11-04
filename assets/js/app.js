@@ -9,6 +9,10 @@ import { ConfigService } from './services/config-service.js';
 import { ExportService } from './services/export-service.js';
 import { ImportService } from './services/import-service.js';
 import { SearchManager } from './services/search-manager.js';
+import { GachaService } from './services/gacha-service.js';
+import { UndoRedoService } from './services/undo-redo-service.js';
+import { TemplateService } from './services/template-service.js';
+import { BatchService } from './services/batch-service.js';
 import { UIManager } from './ui-manager.js';
 import { showNotification, showConfirm } from './utils/helpers.js';
 import { CONSTANTS } from './utils/constants.js';
@@ -46,14 +50,32 @@ class App {
             this.exportService = new ExportService();
             this.importService = new ImportService(this.db);
             this.searchManager = new SearchManager();
+            this.gachaService = new GachaService();
+            this.undoRedoService = new UndoRedoService(this.store);
+            this.templateService = new TemplateService();
+            this.batchService = new BatchService(this.db, this.store);
             
             // 初始化UI管理器
-            this.uiManager = new UIManager(this.store, this.configService, this.exportService, this.importService);
+            this.uiManager = new UIManager(
+                this.store, 
+                this.configService, 
+                this.exportService, 
+                this.importService,
+                this.searchManager,
+                this.gachaService,
+                this.undoRedoService,
+                this.templateService,
+                this.batchService
+            );
             await this.uiManager.init();
             
             // 暴露为全局变量以供HTML中的onclick使用
             window.uiManager = this.uiManager;
             window.searchManager = this.searchManager;
+            window.gachaService = this.gachaService;
+            window.undoRedoService = this.undoRedoService;
+            window.templateService = this.templateService;
+            window.batchService = this.batchService;
             
             // 加载配置
             await this.loadConfigs();
