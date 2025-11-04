@@ -77,9 +77,20 @@ export class ConfigService {
             throw new Error('配置不存在');
         }
 
+        // 生成唯一的文件名，避免覆盖现有文件
+        let duplicateFileName = `${original.fileName}_copy`;
+        const allConfigs = await this.db.getAllConfigs();
+        let counter = 1;
+        
+        // 检查文件名是否已存在，如果存在则添加数字后缀
+        while (allConfigs.some(c => c.fileName === duplicateFileName)) {
+            duplicateFileName = `${original.fileName}_copy${counter}`;
+            counter++;
+        }
+
         const duplicate = {
             id: generateId(),
-            fileName: `${original.fileName}_copy`,
+            fileName: duplicateFileName,
             type: original.type,
             lastModified: new Date().toISOString(),
             content: deepClone(original.content)

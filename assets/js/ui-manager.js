@@ -238,6 +238,7 @@ export class UIManager {
             ${this.renderCraftingRecipes(config)}
             ${this.renderDecomposeRecipe(config)}
             ${this.renderGachaConfigs(config)}
+            ${this.renderSlotConfiguration(config)}
             ${this.renderSpecificFields(config)}
         `;
 
@@ -1249,44 +1250,83 @@ export class UIManager {
     }
 
     /**
-     * 渲染配件槽位配置
+     * 渲染配件槽位配置（所有配置类型都显示）
      */
-    renderAccessoryFields(config) {
-        const slotConfig = config.content.SlotConfiguration || {};
+    renderSlotConfiguration(config) {
+        // Mod期望这些字段在根级别，而不是SlotConfiguration对象中
+        const content = config.content;
         
         return `
             <div class="card mb-3">
                 <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 class="card-title">🔧 配件槽位配置</h3>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <input type="text" id="accessory-fields-search" class="form-input" placeholder="搜索属性..." style="width: 200px; padding: 6px 12px; font-size: 13px;">
-                        <button type="button" id="accessory-fields-search-clear" class="btn btn-icon" style="display: none;" title="清除搜索">
+                        <input type="text" id="slot-config-search" class="form-input" placeholder="搜索属性..." style="width: 200px; padding: 6px 12px; font-size: 13px;">
+                        <button type="button" id="slot-config-search-clear" class="btn btn-icon" style="display: none;" title="清除搜索">
                             <i class="fa fa-times"></i>
                         </button>
                 </div>
                 </div>
-                <div class="card-body" id="accessory-fields-container">
+                <div class="card-body" id="slot-config-container">
                     <div class="grid grid-cols-2 mb-3">
                         <div class="form-group">
                             <label class="form-label">额外槽位标签</label>
-                            <input type="text" class="form-input accessory-field" data-key="AdditionalSlotTags" value="${(slotConfig.AdditionalSlotTags || []).join(', ')}" placeholder="逗号分隔，如: Scope, Magazine">
+                            <input type="text" class="form-input slot-config-field" data-key="AdditionalSlotTags" value="${(content.AdditionalSlotTags || []).join(', ')}" placeholder="逗号分隔，如: Scope, Magazine">
                         </div>
                         <div class="form-group">
                             <label class="form-label">额外槽位数量</label>
-                            <input type="number" class="form-input accessory-field" data-key="AdditionalSlotCount" value="${slotConfig.AdditionalSlotCount || 0}">
+                            <input type="number" class="form-input slot-config-field" data-key="AdditionalSlotCount" value="${content.AdditionalSlotCount || 0}">
                         </div>
                     </div>
                     <div class="grid grid-cols-1 mb-3">
                         <div class="form-group">
                             <label class="form-label">额外槽位自定义名称</label>
-                            <input type="text" class="form-input accessory-field" data-key="AdditionalSlotNames" value="${(slotConfig.AdditionalSlotNames || []).join(', ')}" placeholder="逗号分隔，如: 瞄准镜槽, 弹匣槽">
+                            <input type="text" class="form-input slot-config-field" data-key="AdditionalSlotNames" value="${(content.AdditionalSlotNames || []).join(', ')}" placeholder="逗号分隔，如: 瞄准镜槽, 弹匣槽">
                         </div>
                     </div>
                     <div class="grid grid-cols-1">
                         <div class="form-checkbox">
-                            <input type="checkbox" class="accessory-field" data-key="ReplaceExistingSlots" ${slotConfig.ReplaceExistingSlots ? 'checked' : ''}>
+                            <input type="checkbox" class="slot-config-field" data-key="ReplaceExistingSlots" ${content.ReplaceExistingSlots ? 'checked' : ''}>
                             <label>替换现有槽位</label>
                         </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * 渲染配件属性（仅配件类型显示）
+     */
+    renderAccessoryFields(config) {
+        // 配件属性保存在mshook中，Mod从config.mshook读取
+        const mshook = config.content.mshook || {};
+        const accessoryFields = TYPE_SPECIFIC_FIELDS[CONFIG_TYPES.ACCESSORY] || {};
+        
+        const fieldsHtml = Object.entries(accessoryFields).map(([key, label]) => {
+            const value = mshook[key] || 0;
+            return `
+                <div class="form-group">
+                    <label class="form-label">${label} (${key})</label>
+                    <input type="number" step="0.1" class="form-input accessory-field" data-key="${key}" value="${value}">
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="card mb-3">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 class="card-title">🎯 特定类型属性</h3>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="text" id="accessory-fields-search" class="form-input" placeholder="搜索属性..." style="width: 200px; padding: 6px 12px; font-size: 13px;">
+                        <button type="button" id="accessory-fields-search-clear" class="btn btn-icon" style="display: none;" title="清除搜索">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body" id="accessory-fields-container">
+                    <div class="grid grid-cols-3">
+                        ${fieldsHtml}
                     </div>
                 </div>
             </div>
@@ -1348,8 +1388,8 @@ export class UIManager {
         }
         config.content.Tags = selectedTags;
 
-        // 添加缺失的基础字段
-        this.collectMissingBasicFields(config);
+        // 注意：不在这里调用 collectMissingBasicFields
+        // 会在所有字段（包括 item-field）收集完成后再调用
 
         // Buff配置
         const buffConfigs = [];
@@ -1575,30 +1615,24 @@ export class UIManager {
                 break;
 
             case 'accessory':
+                // 配件专属属性应该保存到mshook中（Mod从config.mshook读取）
                 const accessoryFields = document.querySelectorAll('.accessory-field');
-                const slotConfig = {};
                 accessoryFields.forEach(field => {
                     const key = field.dataset.key;
-                    if (field.type === 'checkbox') {
-                        slotConfig[key] = field.checked;
-                    } else if (field.type === 'number') {
-                        const value = parseInt(field.value) || 0;
-                        if (value !== 0) slotConfig[key] = value;
-                    } else {
-                        const value = field.value.trim();
-                        if (value) {
-                            // 处理逗号分隔的数组
-                            if (key.includes('Tags') || key.includes('Names')) {
-                                slotConfig[key] = value.split(',').map(v => v.trim()).filter(v => v);
-                            } else {
-                                slotConfig[key] = value;
-                            }
+                    const value = parseFloat(field.value) || 0;
+                    if (value !== 0) {
+                        // 确保mshook对象存在
+                        if (!config.content.mshook) {
+                            config.content.mshook = {};
                         }
+                        config.content.mshook[key] = value;
+                    } else if (config.content.mshook && config.content.mshook[key] !== undefined) {
+                        // 如果值为0，从mshook中删除该字段
+                        delete config.content.mshook[key];
                     }
                 });
-                if (Object.keys(slotConfig).length > 0) {
-                    config.content.SlotConfiguration = slotConfig;
-                }
+                // 删除AccessoryProperties（Mod不使用这个字段）
+                delete config.content.AccessoryProperties;
                 break;
 
             default:
@@ -1634,12 +1668,18 @@ export class UIManager {
                             }
                     } else if (field.type === 'number') {
                         const value = parseFloat(field.value) || 0;
-                            // 根据Mod的默认值处理：只保存非默认值
-                            const defaultValue = key === 'MaxStackCount' ? 1 : 0;
-                            if (value !== defaultValue) {
+                            // EnergyValue 和 WaterValue 应该始终保存，即使值为 0
+                            // 因为 Mod 需要这些字段来设置 FoodDrink 组件
+                            if (key === 'EnergyValue' || key === 'WaterValue') {
                                 config.content[key] = value;
                             } else {
-                                delete config.content[key];
+                                // 根据Mod的默认值处理：只保存非默认值
+                                const defaultValue = key === 'MaxStackCount' ? 1 : 0;
+                                if (value !== defaultValue) {
+                                    config.content[key] = value;
+                                } else {
+                                    delete config.content[key];
+                                }
                             }
                     } else {
                         const value = field.value.trim();
@@ -1652,9 +1692,66 @@ export class UIManager {
                     }
                 });
                 
+                // 在移除ItemProperties之前，确保所有字段都已迁移到根级别
+                // 首先检查ItemProperties中是否有需要保留的字段
+                if (config.content.ItemProperties) {
+                    const itemProps = config.content.ItemProperties;
+                    const rootLevelFields = [
+                        'MaxStackCount', 'EnergyValue', 'WaterValue', 'UseDurability',
+                        'HealValue', 'UseDurabilityDrug', 'DurabilityUsageDrug', 'CanUsePartDrug'
+                    ];
+                    
+                    // 如果根级别没有这些字段，但从ItemProperties中有，则迁移
+                    rootLevelFields.forEach(key => {
+                        if (itemProps[key] !== undefined && config.content[key] === undefined) {
+                            config.content[key] = itemProps[key];
+                        }
+                    });
+                }
+                
                 // 移除ItemProperties字段（Mod不支持）
                 delete config.content.ItemProperties;
         }
+
+        // 槽位配置（所有配置类型都支持）
+        // Mod期望这些字段在根级别，而不是SlotConfiguration对象中
+        const slotConfigFields = document.querySelectorAll('.slot-config-field');
+        let hasSlotConfig = false;
+        slotConfigFields.forEach(field => {
+            const key = field.dataset.key;
+            if (field.type === 'checkbox') {
+                const checked = field.checked;
+                if (checked) {
+                    config.content[key] = checked;
+                    hasSlotConfig = true;
+                } else {
+                    delete config.content[key];
+                }
+            } else if (field.type === 'number') {
+                const value = parseInt(field.value) || 0;
+                if (value !== 0) {
+                    config.content[key] = value;
+                    hasSlotConfig = true;
+                } else {
+                    delete config.content[key];
+                }
+            } else {
+                const value = field.value.trim();
+                if (value) {
+                    // 处理逗号分隔的数组
+                    if (key.includes('Tags') || key.includes('Names')) {
+                        config.content[key] = value.split(',').map(v => v.trim()).filter(v => v);
+                    } else {
+                        config.content[key] = value;
+                    }
+                    hasSlotConfig = true;
+                } else {
+                    delete config.content[key];
+                }
+            }
+        });
+        // 删除SlotConfiguration对象（Mod不使用这个包装对象）
+        delete config.content.SlotConfiguration;
 
         // mshook修改器
         const mshookFields = document.querySelectorAll('.mshook-field');
@@ -1668,6 +1765,10 @@ export class UIManager {
             config.content.mshook = mshook;
         }
 
+        // 在所有字段收集完成后，添加缺失的基础字段
+        // 注意：只添加真正缺失的字段，不覆盖已存在的字段
+        this.collectMissingBasicFields(config.content);
+
         return config;
     }
 
@@ -1677,12 +1778,13 @@ export class UIManager {
      */
     collectMissingBasicFields(content) {
         // 确保所有必需的基础字段都存在
+        // 注意：这个方法只添加缺失的字段，不覆盖已存在的字段
         const requiredFields = {
-            // 基础属性
-            EnergyValue: typeof content.EnergyValue === 'number' ? content.EnergyValue : 0,
-            WaterValue: typeof content.WaterValue === 'number' ? content.WaterValue : 0,
-            IconFileName: content.IconFileName || '',
-            MaxStackCount: typeof content.MaxStackCount === 'number' ? content.MaxStackCount : 1,
+            // 基础属性（这些字段的默认值，但不会覆盖已有值）
+            EnergyValue: 0,
+            WaterValue: 0,
+            IconFileName: '',
+            MaxStackCount: 1,
             
             // BuffDuration 确保为对象格式
             BuffDuration: content.BuffDuration && typeof content.BuffDuration === 'object' ? 
@@ -2771,17 +2873,38 @@ export class UIManager {
             const el = document.getElementById(field);
             if (el) {
                 const value = el.type === 'number' ? parseFloat(el.value) || 0 : el.value.trim();
-                // 只保存非空值（但保留LocalizationDescValue，因为它可能包含富文本）
+                
+                // 特殊字段处理：总是保存（即使值为空或0）
                 if (field === 'LocalizationDescValue' || field === 'DisplayName') {
                     // 显示名称和描述值总是保存（可能包含富文本标签）
-                config.content[field] = value;
-                } else if (value !== '' && value !== 0) {
                     config.content[field] = value;
+                } else if (field === 'OriginalItemId' || field === 'NewItemId') {
+                    // ID字段总是保存，即使为0（0可能是有效值）
+                    config.content[field] = value;
+                } else if (field === 'Weight' || field === 'Value' || field === 'Quality') {
+                    // 数值字段总是保存，即使为0（0可能是有效值）
+                    config.content[field] = value;
+                } else if (field === 'LocalizationKey') {
+                    // 本地化键：如果为空则删除，否则保存
+                    if (value !== '') {
+                        config.content[field] = value;
+                    } else {
+                        delete config.content[field];
+                    }
                 } else if (field === 'IconFileName') {
-                    // 这些字段如果为空则删除
-                    delete config.content[field];
+                    // 图标文件名：如果为空则删除，否则保存
+                    if (value !== '') {
+                        config.content[field] = value;
+                    } else {
+                        delete config.content[field];
+                    }
                 } else {
-                    delete config.content[field];
+                    // 其他字段：如果为空或0则删除
+                    if (value !== '' && value !== 0) {
+                        config.content[field] = value;
+                    } else {
+                        delete config.content[field];
+                    }
                 }
             }
         });
@@ -2844,8 +2967,8 @@ export class UIManager {
         }
         config.content.Tags = selectedTags;
 
-        // 添加缺失的基础字段
-        this.collectMissingBasicFields(config);
+        // 注意：不在这里调用 collectMissingBasicFields
+        // 会在所有字段（包括 item-field）收集完成后再调用
 
         // Buff配置
         const buffConfigs = [];
@@ -3064,30 +3187,24 @@ export class UIManager {
                 break;
 
             case 'accessory':
+                // 配件专属属性应该保存到mshook中（Mod从config.mshook读取）
                 const accessoryFields = document.querySelectorAll('.accessory-field');
-                const slotConfig = {};
                 accessoryFields.forEach(field => {
                     const key = field.dataset.key;
-                    if (field.type === 'checkbox') {
-                        slotConfig[key] = field.checked;
-                    } else if (field.type === 'number') {
-                        const value = parseInt(field.value) || 0;
-                        if (value !== 0) slotConfig[key] = value;
-                    } else {
-                        const value = field.value.trim();
-                        if (value) {
-                            // 处理逗号分隔的数组
-                            if (key.includes('Tags') || key.includes('Names')) {
-                                slotConfig[key] = value.split(',').map(v => v.trim()).filter(v => v);
-                            } else {
-                                slotConfig[key] = value;
-                            }
+                    const value = parseFloat(field.value) || 0;
+                    if (value !== 0) {
+                        // 确保mshook对象存在
+                        if (!config.content.mshook) {
+                            config.content.mshook = {};
                         }
+                        config.content.mshook[key] = value;
+                    } else if (config.content.mshook && config.content.mshook[key] !== undefined) {
+                        // 如果值为0，从mshook中删除该字段
+                        delete config.content.mshook[key];
                     }
                 });
-                if (Object.keys(slotConfig).length > 0) {
-                    config.content.SlotConfiguration = slotConfig;
-                }
+                // 删除AccessoryProperties（Mod不使用这个字段）
+                delete config.content.AccessoryProperties;
                 break;
 
             default:

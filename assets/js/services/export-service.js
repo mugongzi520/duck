@@ -113,6 +113,10 @@ export class ExportService {
         // 清理重复的抽奖配置字段，只保留正确的Gacha格式
         delete cleaned.GachaConfigs;
         delete cleaned.ItemProperties;
+        
+        // 清理不使用的包装对象（Mod不使用这些对象，字段在根级别）
+        delete cleaned.SlotConfiguration;  // 槽位配置字段在根级别，不使用包装对象
+        delete cleaned.AccessoryProperties; // 配件属性保存在mshook中，不使用AccessoryProperties
 
         // 修复Formulas字段名：改为AdditionalRecipes
         if (cleaned.Formulas && cleaned.Formulas.length > 0) {
@@ -176,6 +180,10 @@ export class ExportService {
     removeDefaultValues(obj, parentKey = '') {
         // 必填字段列表（这些字段不会被删除，即使值是默认值）
         const requiredFields = ['OriginalItemId', 'NewItemId', 'DisplayName'];
+        
+        // 特殊字段：即使值为默认值（0）也要保留，因为Mod需要这些字段来设置组件
+        // EnergyValue 和 WaterValue 用于设置 FoodDrink 组件，必须保留
+        const alwaysKeepFields = ['EnergyValue', 'WaterValue'];
         
         // 定义各字段的默认值（根据Mod的DataModels.cs）
         const defaultValues = {
@@ -338,6 +346,11 @@ export class ExportService {
             else {
                 // 必填字段不删除
                 if (requiredFields.includes(key)) {
+                    continue;
+                }
+                
+                // 特殊字段：即使值为默认值也要保留（如EnergyValue、WaterValue用于设置FoodDrink组件）
+                if (alwaysKeepFields.includes(key)) {
                     continue;
                 }
                 
