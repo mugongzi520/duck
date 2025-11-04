@@ -88,7 +88,21 @@ export class UIManager {
     }
 
     /**
-     * 更新配置列表
+     * 加载所有配置
+     */
+    async loadConfigs() {
+        try {
+            const configs = await this.configService.db.getAllConfigs();
+            this.store.dispatch({ type: 'SET_CONFIGS', payload: configs });
+            console.log(`📦 加载了 ${configs.length} 个配置`);
+        } catch (error) {
+            console.error('加载配置失败:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * 更新配置列表显示
      */
     updateConfigList(state) {
         const listEl = document.getElementById('config-list');
@@ -432,7 +446,7 @@ export class UIManager {
                                     style="white-space: nowrap;">
                                 <i class="fa fa-plus"></i> 添加
                             </button>
-                        </div>
+                    </div>
                         <!-- 标签下拉菜单 -->
                         <div id="tagDropdown" 
                              class="tag-dropdown hidden" 
@@ -507,7 +521,7 @@ export class UIManager {
                         <button type="button" id="weapon-fields-search-clear" class="btn btn-icon" style="display: none;" title="清除搜索">
                             <i class="fa fa-times"></i>
                         </button>
-                    </div>
+                </div>
                 </div>
                 <div class="card-body" id="weapon-fields-container">
                     <div class="mb-4">
@@ -1000,59 +1014,59 @@ export class UIManager {
                         <button type="button" id="ammo-fields-search-clear" class="btn btn-icon" style="display: none;" title="清除搜索">
                             <i class="fa fa-times"></i>
                         </button>
-                    </div>
+                </div>
                 </div>
                 <div class="card-body" id="ammo-fields-container">
                     <div class="mb-4">
                         <h4 class="text-secondary mb-2">基础属性</h4>
                         <div class="grid grid-cols-2" style="max-height: 400px; overflow-y: auto; padding-right: 8px;">
-                            <div class="form-group">
+                        <div class="form-group">
                                 <label class="form-label">新增暴击率-NewCritRateGain</label>
-                                <input type="number" step="0.1" class="form-input ammo-field" data-key="NewCritRateGain" value="${ammoProps.NewCritRateGain || 0}">
-                            </div>
-                            <div class="form-group">
+                            <input type="number" step="0.1" class="form-input ammo-field" data-key="NewCritRateGain" value="${ammoProps.NewCritRateGain || 0}">
+                        </div>
+                        <div class="form-group">
                                 <label class="form-label">新增暴击伤害系数-NewCritDamageFactorGain</label>
-                                <input type="number" step="0.1" class="form-input ammo-field" data-key="NewCritDamageFactorGain" value="${ammoProps.NewCritDamageFactorGain || 0}">
-                            </div>
-                            <div class="form-group">
+                            <input type="number" step="0.1" class="form-input ammo-field" data-key="NewCritDamageFactorGain" value="${ammoProps.NewCritDamageFactorGain || 0}">
+                        </div>
+                        <div class="form-group">
                                 <label class="form-label">新增穿甲值-NewArmorPiercingGain</label>
-                                <input type="number" step="0.1" class="form-input ammo-field" data-key="NewArmorPiercingGain" value="${ammoProps.NewArmorPiercingGain || 0}">
-                            </div>
-                            <div class="form-group">
+                            <input type="number" step="0.1" class="form-input ammo-field" data-key="NewArmorPiercingGain" value="${ammoProps.NewArmorPiercingGain || 0}">
+                        </div>
+                        <div class="form-group">
                                 <label class="form-label">新增伤害倍率-NewDamageMultiplier</label>
-                                <input type="number" step="0.1" class="form-input ammo-field" data-key="NewDamageMultiplier" value="${ammoProps.NewDamageMultiplier || 1.0}">
-                            </div>
-                            <div class="form-group">
+                            <input type="number" step="0.1" class="form-input ammo-field" data-key="NewDamageMultiplier" value="${ammoProps.NewDamageMultiplier || 1.0}">
+                        </div>
+                        <div class="form-group">
                                 <label class="form-label">新增爆炸范围-NewExplosionRange</label>
-                                <input type="number" step="0.1" class="form-input ammo-field" data-key="NewExplosionRange" value="${ammoProps.NewExplosionRange || 0}">
-                            </div>
-                            <div class="form-group">
+                            <input type="number" step="0.1" class="form-input ammo-field" data-key="NewExplosionRange" value="${ammoProps.NewExplosionRange || 0}">
+                        </div>
+                        <div class="form-group">
                                 <label class="form-label">新增增益几率倍率-NewBuffChanceMultiplier</label>
-                                <input type="number" step="0.1" class="form-input ammo-field" data-key="NewBuffChanceMultiplier" value="${ammoProps.NewBuffChanceMultiplier || 1.0}">
-                            </div>
-                            <div class="form-group">
+                            <input type="number" step="0.1" class="form-input ammo-field" data-key="NewBuffChanceMultiplier" value="${ammoProps.NewBuffChanceMultiplier || 1.0}">
+                        </div>
+                        <div class="form-group">
                                 <label class="form-label">新增流血几率-NewBleedChance</label>
-                                <input type="number" step="0.1" class="form-input ammo-field" data-key="NewBleedChance" value="${ammoProps.NewBleedChance || 0}">
-                            </div>
-                            <div class="form-group">
+                            <input type="number" step="0.1" class="form-input ammo-field" data-key="NewBleedChance" value="${ammoProps.NewBleedChance || 0}">
+                        </div>
+                        <div class="form-group">
                                 <label class="form-label">新增爆炸伤害-NewExplosionDamage</label>
-                                <input type="number" step="0.1" class="form-input ammo-field" data-key="NewExplosionDamage" value="${ammoProps.NewExplosionDamage || 0}">
-                            </div>
-                            <div class="form-group">
+                            <input type="number" step="0.1" class="form-input ammo-field" data-key="NewExplosionDamage" value="${ammoProps.NewExplosionDamage || 0}">
+                        </div>
+                        <div class="form-group">
                                 <label class="form-label">新增破甲值-NewArmorBreakGain</label>
-                                <input type="number" step="0.1" class="form-input ammo-field" data-key="NewArmorBreakGain" value="${ammoProps.NewArmorBreakGain || 0}">
-                            </div>
-                            <div class="form-group">
+                            <input type="number" step="0.1" class="form-input ammo-field" data-key="NewArmorBreakGain" value="${ammoProps.NewArmorBreakGain || 0}">
+                        </div>
+                        <div class="form-group">
                                 <label class="form-label">新增耐久度消耗-NewDurabilityCost</label>
-                                <input type="number" step="0.1" class="form-input ammo-field" data-key="NewDurabilityCost" value="${ammoProps.NewDurabilityCost || 0}">
-                            </div>
-                            <div class="form-group">
+                            <input type="number" step="0.1" class="form-input ammo-field" data-key="NewDurabilityCost" value="${ammoProps.NewDurabilityCost || 0}">
+                        </div>
+                        <div class="form-group">
                                 <label class="form-label">新增子弹速度-NewBulletSpeed</label>
-                                <input type="number" step="0.1" class="form-input ammo-field" data-key="NewBulletSpeed" value="${ammoProps.NewBulletSpeed || 0}">
-                            </div>
-                            <div class="form-group">
+                            <input type="number" step="0.1" class="form-input ammo-field" data-key="NewBulletSpeed" value="${ammoProps.NewBulletSpeed || 0}">
+                        </div>
+                        <div class="form-group">
                                 <label class="form-label">新增子弹射程-NewBulletDistance</label>
-                                <input type="number" step="0.1" class="form-input ammo-field" data-key="NewBulletDistance" value="${ammoProps.NewBulletDistance || 0}">
+                            <input type="number" step="0.1" class="form-input ammo-field" data-key="NewBulletDistance" value="${ammoProps.NewBulletDistance || 0}">
                             </div>
                         </div>
                     </div>
@@ -1166,7 +1180,7 @@ export class UIManager {
                         <button type="button" id="melee-fields-search-clear" class="btn btn-icon" style="display: none;" title="清除搜索">
                             <i class="fa fa-times"></i>
                         </button>
-                    </div>
+                </div>
                 </div>
                 <div class="card-body" id="melee-fields-container">
                     <div class="grid grid-cols-3">
@@ -1227,7 +1241,7 @@ export class UIManager {
                         <button type="button" id="accessory-fields-search-clear" class="btn btn-icon" style="display: none;" title="清除搜索">
                             <i class="fa fa-times"></i>
                         </button>
-                    </div>
+                </div>
                 </div>
                 <div class="card-body" id="accessory-fields-container">
                     <div class="grid grid-cols-2 mb-3">
@@ -1513,7 +1527,7 @@ export class UIManager {
                     if (checkbox && checkbox.classList.contains('ammo-hash-check') && checkbox.checked) {
                         const value = parseFloat(field.value);
                         if (value !== undefined && !isNaN(value) && field.value.trim() !== '') {
-                            ammoProps[key] = value;
+                        ammoProps[key] = value;
                         }
                     }
                 });
@@ -1587,7 +1601,7 @@ export class UIManager {
                     ];
                     
                     if (rootLevelFields.includes(key)) {
-                        if (field.type === 'checkbox') {
+                    if (field.type === 'checkbox') {
                             if (field.checked) {
                                 config.content[key] = field.checked;
                             } else {
@@ -1596,8 +1610,8 @@ export class UIManager {
                                     delete config.content[key];
                                 }
                             }
-                        } else if (field.type === 'number') {
-                            const value = parseFloat(field.value) || 0;
+                    } else if (field.type === 'number') {
+                        const value = parseFloat(field.value) || 0;
                             // 根据Mod的默认值处理：只保存非默认值
                             const defaultValue = key === 'MaxStackCount' ? 1 : 0;
                             if (value !== defaultValue) {
@@ -1605,14 +1619,14 @@ export class UIManager {
                             } else {
                                 delete config.content[key];
                             }
-                        } else {
-                            const value = field.value.trim();
+                    } else {
+                        const value = field.value.trim();
                             if (value) {
                                 config.content[key] = value;
                             } else {
                                 delete config.content[key];
-                            }
-                        }
+                    }
+                }
                     }
                 });
                 
@@ -1717,7 +1731,7 @@ export class UIManager {
                         <button type="button" id="item-fields-search-clear" class="btn btn-icon" style="display: none;" title="清除搜索">
                             <i class="fa fa-times"></i>
                         </button>
-                    </div>
+                </div>
                 </div>
                 <div class="card-body" id="item-fields-container">
                     <div class="grid grid-cols-3">
@@ -2738,7 +2752,7 @@ export class UIManager {
                 // 只保存非空值（但保留LocalizationDescValue，因为它可能包含富文本）
                 if (field === 'LocalizationDescValue' || field === 'DisplayName') {
                     // 显示名称和描述值总是保存（可能包含富文本标签）
-                    config.content[field] = value;
+                config.content[field] = value;
                 } else if (value !== '' && value !== 0) {
                     config.content[field] = value;
                 } else if (field === 'IconFileName') {
@@ -3002,7 +3016,7 @@ export class UIManager {
                     if (checkbox && checkbox.classList.contains('ammo-hash-check') && checkbox.checked) {
                         const value = parseFloat(field.value);
                         if (value !== undefined && !isNaN(value) && field.value.trim() !== '') {
-                            ammoProps[key] = value;
+                        ammoProps[key] = value;
                         }
                     }
                 });
@@ -5075,16 +5089,22 @@ export class UIManager {
             `;
             
             results.success.forEach((config, index) => {
+                if (!config || !config.id) return; // 跳过无效配置
+                
                 const typeIcon = typeInfo[config.type]?.icon || 'fa-file';
                 const typeName = typeInfo[config.type]?.name || config.type;
+                const configId = String(config.id).replace(/'/g, "\\'"); // 转义单引号
+                const fileName = String(config.fileName || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); // 转义HTML
+                
                 successListHtml += `
-                    <div style="padding: 10px; background: var(--bg-secondary, #f5f5f5); border-radius: 4px; border-left: 3px solid #4caf50; cursor: pointer;" 
-                         onclick="window.uiManager.selectConfig('${config.id}')"
+                    <div class="imported-config-item" 
+                         data-config-id="${configId}"
+                         style="padding: 10px; background: var(--bg-secondary, #f5f5f5); border-radius: 4px; border-left: 3px solid #4caf50; cursor: pointer;" 
                          onmouseover="this.style.background='var(--bg-hover, #e8f5e9)'"
                          onmouseout="this.style.background='var(--bg-secondary, #f5f5f5)'">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                             <i class="fa ${typeIcon}" style="color: var(--text-secondary, #666);"></i>
-                            <span style="font-weight: 600; color: var(--text-primary); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${config.fileName}">${config.fileName}</span>
+                            <span style="font-weight: 600; color: var(--text-primary); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${fileName}">${fileName}</span>
                         </div>
                         <div style="font-size: 12px; color: var(--text-secondary, #666);">
                             ${typeName}
@@ -5134,6 +5154,7 @@ export class UIManager {
         }
 
         // 创建模态框
+        let modalRef = null;
         const modal = createModal({
             title: '导入结果',
             content: `
@@ -5163,10 +5184,54 @@ export class UIManager {
             `,
             width: '800px',
             buttons: [
-                { text: '关闭', class: 'btn-primary', action: (modal) => modal.remove() }
+                { 
+                    text: '关闭', 
+                    className: 'btn btn-primary', 
+                    onClick: () => {
+                        if (modalRef && modalRef.close) {
+                            modalRef.close();
+                        }
+                    }
+                }
             ]
         });
 
+        if (!modal) {
+            console.error('无法创建导入结果模态框');
+            return;
+        }
+
+        modalRef = modal;
         modal.show();
+
+        // 绑定点击事件（使用事件委托，避免在onclick中直接使用字符串）
+        setTimeout(() => {
+            const modalElement = modalRef?.element;
+            if (modalElement) {
+                // 使用事件委托处理配置项点击
+                modalElement.addEventListener('click', (e) => {
+                    const configItem = e.target.closest('.imported-config-item');
+                    if (configItem) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        if (window.uiManager && typeof window.uiManager.selectConfig === 'function') {
+                            const configId = configItem.dataset.configId;
+                            if (configId) {
+                                try {
+                                    window.uiManager.selectConfig(configId);
+                                    if (modalRef && modalRef.close) {
+                                        modalRef.close();
+                                    }
+                                } catch (error) {
+                                    console.error('打开配置失败:', error);
+                                    showNotification('错误', '打开配置失败: ' + error.message, 'error');
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }, 100);
     }
 }
