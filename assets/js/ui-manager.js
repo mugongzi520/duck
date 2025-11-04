@@ -518,7 +518,8 @@ export class UIManager {
                 specificFieldsHtml = this.renderAccessoryFields(config);
                 break;
             default:
-                specificFieldsHtml = this.renderItemFields(config);
+                // 物品属性类型已经在renderForm中通过renderItemFields渲染了，这里不需要重复
+                specificFieldsHtml = '';
         }
 
         // 添加mshook修改器配置
@@ -3204,7 +3205,30 @@ export class UIManager {
         }
 
         try {
-            await this.configService.updateConfig(config.id, config.content);
+            // 更新配置，包括文件名和类型
+            const savedConfig = await this.configService.updateConfig(config.id, config.content, {
+                fileName: config.fileName,
+                type: config.type
+            });
+            
+            // 更新编辑器标题和表单中的文件名显示
+            const titleElement = document.getElementById('editor-title-text');
+            if (titleElement) {
+                titleElement.textContent = savedConfig.fileName;
+            }
+            
+            // 更新表单中的文件名输入框（确保显示最新值）
+            const fileNameInput = document.getElementById('fileName');
+            if (fileNameInput) {
+                fileNameInput.value = savedConfig.fileName;
+            }
+            
+            // 更新表单中的配置类型下拉框
+            const configTypeSelect = document.getElementById('configType');
+            if (configTypeSelect) {
+                configTypeSelect.value = savedConfig.type;
+            }
+            
             this.store.dispatch({ type: 'SET_UNSAVED_CHANGES', payload: false });
             await this.loadConfigs();
             this.checkIdConflicts();

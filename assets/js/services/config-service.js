@@ -32,8 +32,11 @@ export class ConfigService {
 
     /**
      * 更新配置
+     * @param {string} id - 配置ID
+     * @param {Object} content - 配置内容
+     * @param {Object} options - 可选参数，包含 fileName 和 type
      */
-    async updateConfig(id, content) {
+    async updateConfig(id, content, options = {}) {
         const config = await this.db.getConfig(id);
         if (!config) {
             throw new Error('配置不存在');
@@ -41,6 +44,14 @@ export class ConfigService {
 
         config.content = content;
         config.lastModified = new Date().toISOString();
+
+        // 更新文件名和类型（如果提供）
+        if (options.fileName !== undefined) {
+            config.fileName = options.fileName;
+        }
+        if (options.type !== undefined) {
+            config.type = options.type;
+        }
 
         const saved = await this.db.saveConfig(config);
         this.store.dispatch({ type: 'UPDATE_CONFIG', payload: saved });
