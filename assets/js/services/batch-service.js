@@ -63,9 +63,9 @@ export class BatchService {
 
         switch (format) {
             case 'json':
-                return this.exportAsJSON(configs);
+                return await this.exportAsJSON(configs);
             case 'zip':
-                return this.exportAsZip(configs);
+                return await this.exportAsZip(configs);
             default:
                 throw new Error(`不支持的导出格式: ${format}`);
         }
@@ -74,16 +74,24 @@ export class BatchService {
     /**
      * 导出为JSON格式
      */
-    exportAsJSON(configs) {
+    async exportAsJSON(configs) {
+        // 导入导出服务来清理配置数据
+        const { ExportService } = await import('./export-service.js');
+        const exportService = new ExportService();
+
         const exportData = {
             version: '2.0',
             exportTime: new Date().toISOString(),
-            configs: configs.map(config => ({
-                fileName: config.fileName,
-                type: config.type,
-                lastModified: config.lastModified,
-                content: config.content
-            }))
+            configs: configs.map(config => {
+                // 清理配置数据，移除默认值和空值
+                const cleanedContent = exportService.cleanConfigData(config.content);
+                return {
+                    fileName: config.fileName,
+                    type: config.type,
+                    lastModified: config.lastModified,
+                    content: cleanedContent
+                };
+            })
         };
 
         return {
@@ -95,40 +103,58 @@ export class BatchService {
 
     /**
      * 导出为ZIP格式（需要JSZip库）
+     * 每个配置导出为单独的JSON文件，然后打包成ZIP
      */
     async exportAsZip(configs) {
         if (typeof JSZip === 'undefined') {
-            throw new Error('需要JSZip库支持ZIP导出功能');
+            throw new Error('需要JSZip库支持ZIP导出功能，请刷新页面重试');
         }
 
-        const zip = new JSZip();
+        try {
+            const zip = new JSZip();
 
-        configs.forEach(config => {
-            const filename = `${config.fileName}.json`;
-            const content = JSON.stringify(config.content, null, 2);
-            zip.file(filename, content);
-        });
+            // 导入导出服务来清理配置数据
+            const { ExportService } = await import('./export-service.js');
+            const exportService = new ExportService();
 
-        // 添加清单文件
-        const manifest = {
-            version: '2.0',
-            exportTime: new Date().toISOString(),
-            count: configs.length,
-            configs: configs.map(config => ({
-                fileName: config.fileName,
-                type: config.type,
-                lastModified: config.lastModified
-            }))
-        };
-        zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+            // 为每个配置创建单独的JSON文件
+            configs.forEach(config => {
+                const filename = `${config.fileName}.json`;
+                // 清理配置数据，移除默认值和空值
+                const cleanedContent = exportService.cleanConfigData(config.content);
+                const content = JSON.stringify(cleanedContent, null, 2);
+                zip.file(filename, content);
+            });
 
-        const zipBlob = await zip.generateAsync({ type: 'blob' });
-        
-        return {
-            filename: `configs_batch_${Date.now()}.zip`,
-            content: zipBlob,
-            mimeType: 'application/zip'
-        };
+            // 添加清单文件
+            const manifest = {
+                version: '2.0',
+                exportTime: new Date().toISOString(),
+                count: configs.length,
+                configs: configs.map(config => ({
+                    fileName: config.fileName,
+                    type: config.type,
+                    lastModified: config.lastModified
+                }))
+            };
+            zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+
+            // 生成ZIP文件
+            const zipBlob = await zip.generateAsync({ 
+                type: 'blob',
+                compression: 'DEFLATE',
+                compressionOptions: { level: 6 }
+            });
+            
+            return {
+                filename: `configs_batch_${Date.now()}.zip`,
+                content: zipBlob,
+                mimeType: 'application/zip'
+            };
+        } catch (error) {
+            console.error('ZIP导出过程错误:', error);
+            throw new Error(`ZIP导出失败: ${error.message}`);
+        }
     }
 
     /**

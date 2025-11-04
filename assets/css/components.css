@@ -35,6 +35,12 @@
     transform: none;
 }
 
+/* 小尺寸按钮 */
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
 /* 按钮变体 */
 .btn-primary {
     background: var(--gradient-primary);

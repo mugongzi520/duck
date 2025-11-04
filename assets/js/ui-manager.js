@@ -118,14 +118,23 @@ export class UIManager {
                     <p class="empty-hint">尝试调整搜索或筛选条件</p>
                 </div>
             `;
+            // 隐藏批量操作工具栏
+            this.updateBatchActionsBar([]);
             return;
         }
+
+        // 检查是否有批量操作工具栏，如果没有则添加
+        this.ensureBatchActionsBar();
 
         listEl.innerHTML = '';
         configs.forEach(config => {
             const item = this.createConfigListItem(config, state.currentConfig);
             listEl.appendChild(item);
         });
+
+        // 更新批量操作工具栏
+        const selectedCount = this.getSelectedConfigIds().length;
+        this.updateBatchActionsBar(selectedCount > 0 ? this.getSelectedConfigIds() : []);
 
         // 检查ID冲突
         this.checkIdConflicts();
@@ -142,21 +151,33 @@ export class UIManager {
         const item = document.createElement('div');
         item.className = `config-item ${isActive ? 'active' : ''}`;
         item.dataset.configId = config.id;
+        item.style.cssText = 'display: flex; align-items: center; padding: 12px; cursor: pointer;';
         item.innerHTML = `
-            <div class="config-item-header">
-                <i class="fa ${typeInfo.icon} config-item-icon"></i>
-                <div class="config-item-title">${config.fileName}</div>
-                ${newItemId ? `<div class="config-item-id" style="font-size: 11px; color: var(--text-secondary); margin-left: 8px;">ID: ${newItemId}</div>` : ''}
+            <div class="config-item-checkbox" style="margin-right: 8px; flex-shrink: 0;">
+                <input type="checkbox" class="config-select-checkbox" data-config-id="${config.id}" 
+                       onclick="event.stopPropagation(); window.uiManager.handleConfigSelect(event);">
             </div>
-            <div class="config-item-meta">
-                <div class="config-item-type">
-                    <span>${typeInfo.name}</span>
+            <div class="config-item-content" style="flex: 1; min-width: 0;">
+                <div class="config-item-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <i class="fa ${typeInfo.icon} config-item-icon" style="flex-shrink: 0; color: var(--text-secondary);"></i>
+                    <div class="config-item-title" style="font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        ${config.fileName}
+                    </div>
                 </div>
-                <div class="config-item-date">${formatDate(config.lastModified, 'MM-DD HH:mm')}</div>
+                <div class="config-item-meta" style="display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--text-secondary);">
+                    <span class="config-item-type">${typeInfo.name}</span>
+                    ${newItemId ? `<span class="config-item-id" style="background: var(--bg-tertiary, #e9ecef); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 11px;">ID: ${newItemId}</span>` : ''}
+                    <span class="config-item-date" style="margin-left: auto;">${formatDate(config.lastModified, 'MM-DD HH:mm')}</span>
+                </div>
             </div>
         `;
 
-        item.addEventListener('click', () => this.selectConfig(config.id));
+        // 点击项时，如果不是点击复选框，则选择配置
+        item.addEventListener('click', (e) => {
+            if (!e.target.closest('.config-item-checkbox')) {
+                this.selectConfig(config.id);
+            }
+        });
         return item;
     }
 
@@ -3427,12 +3448,20 @@ export class UIManager {
                         选择导出格式：
                     </p>
                 </div>
-                <div style="display: flex; gap: 12px; margin-top: 16px;">
-                    <button class="btn btn-primary" id="batch-export-json" style="flex: 1;">
-                        <i class="fa fa-file-text-o"></i> JSON格式
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+                    <button class="btn btn-primary" id="batch-export-json" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px;">
+                        <i class="fa fa-file-text-o" style="font-size: 24px;"></i>
+                        <div>
+                            <div style="font-weight: 600;">JSON格式</div>
+                            <div style="font-size: 12px; opacity: 0.8;">合并为一个文件</div>
+                        </div>
                     </button>
-                    <button class="btn btn-outline" id="batch-export-zip" style="flex: 1;">
-                        <i class="fa fa-file-archive-o"></i> ZIP格式
+                    <button class="btn btn-outline" id="batch-export-zip" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px;">
+                        <i class="fa fa-file-archive-o" style="font-size: 24px;"></i>
+                        <div>
+                            <div style="font-weight: 600;">ZIP格式</div>
+                            <div style="font-size: 12px; opacity: 0.8;">每个配置单独文件</div>
+                        </div>
                     </button>
                 </div>
             `,
@@ -3444,47 +3473,51 @@ export class UIManager {
         modal.show();
 
         // 绑定导出按钮
-        document.getElementById('batch-export-json').addEventListener('click', async () => {
-            try {
-                const configIds = configs.map(c => c.id);
-                const result = await this.batchService.batchExport(configIds, 'json');
-                
-                // 下载文件
-                const blob = new Blob([result.content], { type: result.mimeType });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = result.filename;
-                a.click();
-                URL.revokeObjectURL(url);
+        setTimeout(() => {
+            const jsonBtn = document.getElementById('batch-export-json');
+            const zipBtn = document.getElementById('batch-export-zip');
+            
+            if (jsonBtn) {
+                jsonBtn.addEventListener('click', async () => {
+                    try {
+                        const configIds = configs.map(c => c.id);
+                        const result = await this.batchService.batchExport(configIds, 'json');
+                        
+                        // 下载文件
+                        this.downloadFile(result.content, result.filename, result.mimeType);
 
-                showNotification('成功', `已导出 ${configs.length} 个配置`, 'success');
-                modal.remove();
-            } catch (error) {
-                showNotification('错误', error.message, 'error');
+                        showNotification('成功', `已导出 ${configs.length} 个配置`, 'success');
+                        modal.close();
+                    } catch (error) {
+                        showNotification('错误', error.message, 'error');
+                    }
+                });
             }
-        });
 
-        document.getElementById('batch-export-zip').addEventListener('click', async () => {
-            try {
-                const configIds = configs.map(c => c.id);
-                const result = await this.batchService.batchExport(configIds, 'zip');
-                
-                // 下载文件
-                const blob = new Blob([result.content], { type: result.mimeType });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = result.filename;
-                a.click();
-                URL.revokeObjectURL(url);
+            if (zipBtn) {
+                zipBtn.addEventListener('click', async () => {
+                    try {
+                        // 检查JSZip是否加载
+                        if (typeof JSZip === 'undefined') {
+                            showNotification('错误', 'JSZip库未加载，请刷新页面后重试', 'error');
+                            return;
+                        }
 
-                showNotification('成功', `已导出 ${configs.length} 个配置`, 'success');
-                modal.remove();
-            } catch (error) {
-                showNotification('错误', error.message, 'error');
+                        const configIds = configs.map(c => c.id);
+                        const result = await this.batchService.batchExport(configIds, 'zip');
+                        
+                        // 下载文件
+                        this.downloadFile(result.content, result.filename, result.mimeType);
+
+                        showNotification('成功', `已导出 ${configs.length} 个配置为ZIP文件（每个配置单独文件）`, 'success');
+                        modal.close();
+                    } catch (error) {
+                        console.error('ZIP导出错误:', error);
+                        showNotification('错误', error.message || 'ZIP导出失败，请检查JSZip库是否加载', 'error');
+                    }
+                });
             }
-        });
+        }, 100);
     }
 
     /**
@@ -5233,5 +5266,253 @@ export class UIManager {
                 });
             }
         }, 100);
+    }
+
+    /**
+     * 处理配置选择
+     */
+    handleConfigSelect(event) {
+        const checkbox = event.target;
+        const configId = checkbox.dataset.configId;
+        
+        // 更新批量操作工具栏
+        const selectedIds = this.getSelectedConfigIds();
+        this.updateBatchActionsBar(selectedIds);
+    }
+
+    /**
+     * 获取选中的配置ID列表
+     */
+    getSelectedConfigIds() {
+        const checkboxes = document.querySelectorAll('.config-select-checkbox:checked');
+        return Array.from(checkboxes).map(cb => cb.dataset.configId);
+    }
+
+    /**
+     * 确保批量操作工具栏存在
+     */
+    ensureBatchActionsBar() {
+        let bar = document.getElementById('batch-actions-bar');
+        if (!bar) {
+            const configList = document.getElementById('config-list');
+            if (!configList) return;
+
+            // 查找配置列表的父容器
+            const sidebar = configList.closest('.sidebar');
+            if (!sidebar) return;
+
+            bar = document.createElement('div');
+            bar.id = 'batch-actions-bar';
+            bar.className = 'batch-actions-bar';
+            bar.style.cssText = `
+                display: none;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                padding: 12px;
+                background: var(--bg-secondary, #f8f9fa);
+                border-bottom: 2px solid var(--color-primary, #007bff);
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                margin-bottom: 8px;
+            `;
+            bar.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <span id="batch-selected-count" style="font-weight: 600; color: var(--text-primary); font-size: 14px;">
+                            已选择 <span id="selected-count-number" style="color: var(--color-primary, #007bff);">0</span> 个配置
+                        </span>
+                        <button class="btn btn-sm btn-outline" id="btn-select-all" style="font-size: 12px; padding: 6px 12px;">
+                            <i class="fa fa-check-square-o"></i> 全选
+                        </button>
+                        <button class="btn btn-sm btn-outline" id="btn-select-none" style="font-size: 12px; padding: 6px 12px;">
+                            <i class="fa fa-square-o"></i> 取消全选
+                        </button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn btn-sm btn-primary" id="btn-batch-export-selected" style="font-size: 12px; padding: 6px 12px;">
+                            <i class="fa fa-download"></i> 导出选中
+                        </button>
+                        <button class="btn btn-sm btn-danger" id="btn-batch-delete-selected" style="font-size: 12px; padding: 6px 12px;">
+                            <i class="fa fa-trash"></i> 删除选中
+                        </button>
+                    </div>
+                </div>
+            `;
+            // 插入到配置列表之前
+            configList.parentNode.insertBefore(bar, configList);
+
+            // 绑定事件
+            document.getElementById('btn-select-all').addEventListener('click', () => {
+                document.querySelectorAll('.config-select-checkbox').forEach(cb => cb.checked = true);
+                this.updateBatchActionsBar(this.getSelectedConfigIds());
+            });
+
+            document.getElementById('btn-select-none').addEventListener('click', () => {
+                document.querySelectorAll('.config-select-checkbox').forEach(cb => cb.checked = false);
+                this.updateBatchActionsBar([]);
+            });
+
+            document.getElementById('btn-batch-export-selected').addEventListener('click', () => {
+                this.handleBatchExportSelected();
+            });
+
+            document.getElementById('btn-batch-delete-selected').addEventListener('click', () => {
+                this.handleBatchDeleteSelected();
+            });
+        }
+    }
+
+    /**
+     * 更新批量操作工具栏
+     */
+    updateBatchActionsBar(selectedIds) {
+        const bar = document.getElementById('batch-actions-bar');
+        if (!bar) return;
+
+        const count = selectedIds.length;
+        const countElement = document.getElementById('selected-count-number');
+        if (countElement) {
+            countElement.textContent = count;
+        }
+
+        if (count > 0) {
+            bar.style.display = 'block';
+        } else {
+            bar.style.display = 'none';
+        }
+    }
+
+    /**
+     * 处理批量导出选中配置
+     */
+    async handleBatchExportSelected() {
+        const selectedIds = this.getSelectedConfigIds();
+        if (selectedIds.length === 0) {
+            showNotification('提示', '请先选择要导出的配置', 'info');
+            return;
+        }
+
+        // 显示批量导出对话框
+        const modal = createModal({
+            title: '批量导出配置',
+            content: `
+                <div style="margin-bottom: 16px;">
+                    <p>已选择 <strong>${selectedIds.length}</strong> 个配置</p>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">
+                        选择导出格式：
+                    </p>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+                    <button class="btn btn-primary" id="batch-export-json" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px;">
+                        <i class="fa fa-file-text-o" style="font-size: 24px;"></i>
+                        <div>
+                            <div style="font-weight: 600;">JSON格式</div>
+                            <div style="font-size: 12px; opacity: 0.8;">合并为一个文件</div>
+                        </div>
+                    </button>
+                    <button class="btn btn-outline" id="batch-export-zip" style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px;">
+                        <i class="fa fa-file-archive-o" style="font-size: 24px;"></i>
+                        <div>
+                            <div style="font-weight: 600;">ZIP格式</div>
+                            <div style="font-size: 12px; opacity: 0.8;">每个配置单独文件</div>
+                        </div>
+                    </button>
+                </div>
+            `,
+            buttons: [
+                { text: '取消', className: 'btn-outline', onClick: (modal) => modal.close() }
+            ]
+        });
+
+        if (!modal) return;
+        modal.show();
+
+        // 绑定导出按钮
+        setTimeout(() => {
+            const jsonBtn = document.getElementById('batch-export-json');
+            const zipBtn = document.getElementById('batch-export-zip');
+            
+            if (jsonBtn) {
+                jsonBtn.addEventListener('click', async () => {
+                    try {
+                        const result = await this.batchService.batchExport(selectedIds, 'json');
+                        this.downloadFile(result.content, result.filename, result.mimeType);
+                        showNotification('成功', `已导出 ${selectedIds.length} 个配置`, 'success');
+                        modal.close();
+                    } catch (error) {
+                        showNotification('错误', error.message, 'error');
+                    }
+                });
+            }
+
+            if (zipBtn) {
+                zipBtn.addEventListener('click', async () => {
+                    try {
+                        // 检查JSZip是否加载
+                        if (typeof JSZip === 'undefined') {
+                            showNotification('错误', 'JSZip库未加载，请刷新页面后重试', 'error');
+                            return;
+                        }
+
+                        const result = await this.batchService.batchExport(selectedIds, 'zip');
+                        this.downloadFile(result.content, result.filename, result.mimeType);
+                        showNotification('成功', `已导出 ${selectedIds.length} 个配置为ZIP文件（每个配置单独文件）`, 'success');
+                        modal.close();
+                    } catch (error) {
+                        console.error('ZIP导出错误:', error);
+                        showNotification('错误', error.message || 'ZIP导出失败，请检查JSZip库是否加载', 'error');
+                    }
+                });
+            }
+        }, 100);
+    }
+
+    /**
+     * 处理批量删除选中配置
+     */
+    async handleBatchDeleteSelected() {
+        const selectedIds = this.getSelectedConfigIds();
+        if (selectedIds.length === 0) {
+            showNotification('提示', '请先选择要删除的配置', 'info');
+            return;
+        }
+
+        const confirmed = await showConfirm(`确定要删除选中的 ${selectedIds.length} 个配置吗？此操作不可撤销。`);
+        if (!confirmed) return;
+
+        try {
+            const results = await this.batchService.batchDelete(selectedIds);
+            
+            // 重新加载配置列表
+            await this.loadConfigs();
+            this.checkIdConflicts();
+
+            if (results.success.length > 0) {
+                showNotification('成功', `已删除 ${results.success.length} 个配置`, 'success');
+            }
+            
+            if (results.failed.length > 0) {
+                showNotification('警告', `${results.failed.length} 个配置删除失败`, 'warning');
+            }
+
+            // 清除所有选择
+            document.querySelectorAll('.config-select-checkbox').forEach(cb => cb.checked = false);
+            this.updateBatchActionsBar([]);
+        } catch (error) {
+            showNotification('错误', error.message, 'error');
+        }
+    }
+
+    /**
+     * 下载文件
+     */
+    downloadFile(content, filename, mimeType) {
+        const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
     }
 }
