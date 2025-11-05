@@ -1478,9 +1478,8 @@ export class UIManager {
         delete config.content.UnlockByDefault;
         delete config.content.HideInIndex;
         delete config.content.LockInDemo;
-        delete config.content.AdditionalSlotTags;
-        delete config.content.AdditionalSlotCount;
-        delete config.content.AdditionalSlotNames;
+        // 注意：AdditionalSlotTags、AdditionalSlotCount、AdditionalSlotNames 是有效字段，不应删除
+        // 这些字段将在后面的槽位配置收集逻辑中正确处理
 
         // 分解配方
         const enableDecompose = document.getElementById('EnableDecompose')?.checked;
@@ -1715,38 +1714,26 @@ export class UIManager {
 
         // 槽位配置（所有配置类型都支持）
         // Mod期望这些字段在根级别，而不是SlotConfiguration对象中
+        // 总是收集这些字段，让导出服务决定是否保留
         const slotConfigFields = document.querySelectorAll('.slot-config-field');
-        let hasSlotConfig = false;
         slotConfigFields.forEach(field => {
             const key = field.dataset.key;
             if (field.type === 'checkbox') {
-                const checked = field.checked;
-                if (checked) {
-                    config.content[key] = checked;
-                    hasSlotConfig = true;
-                } else {
-                    delete config.content[key];
-                }
+                config.content[key] = field.checked;
             } else if (field.type === 'number') {
                 const value = parseInt(field.value) || 0;
-                if (value !== 0) {
-                    config.content[key] = value;
-                    hasSlotConfig = true;
-                } else {
-                    delete config.content[key];
-                }
+                config.content[key] = value;
             } else {
                 const value = field.value.trim();
-                if (value) {
-                    // 处理逗号分隔的数组
-                    if (key.includes('Tags') || key.includes('Names')) {
+                // 处理逗号分隔的数组
+                if (key.includes('Tags') || key.includes('Names')) {
+                    if (value) {
                         config.content[key] = value.split(',').map(v => v.trim()).filter(v => v);
                     } else {
-                        config.content[key] = value;
+                        config.content[key] = [];
                     }
-                    hasSlotConfig = true;
                 } else {
-                    delete config.content[key];
+                    config.content[key] = value;
                 }
             }
         });
@@ -3239,6 +3226,34 @@ export class UIManager {
         if (Object.keys(mshook).length > 0) {
             config.content.mshook = mshook;
         }
+
+        // 槽位配置（所有配置类型都支持）
+        // Mod期望这些字段在根级别，而不是SlotConfiguration对象中
+        // 总是收集这些字段，让导出服务决定是否保留
+        const slotConfigFields = document.querySelectorAll('.slot-config-field');
+        slotConfigFields.forEach(field => {
+            const key = field.dataset.key;
+            if (field.type === 'checkbox') {
+                config.content[key] = field.checked;
+            } else if (field.type === 'number') {
+                const value = parseInt(field.value) || 0;
+                config.content[key] = value;
+            } else {
+                const value = field.value.trim();
+                // 处理逗号分隔的数组
+                if (key.includes('Tags') || key.includes('Names')) {
+                    if (value) {
+                        config.content[key] = value.split(',').map(v => v.trim()).filter(v => v);
+                    } else {
+                        config.content[key] = [];
+                    }
+                } else {
+                    config.content[key] = value;
+                }
+            }
+        });
+        // 删除SlotConfiguration对象（Mod不使用这个包装对象）
+        delete config.content.SlotConfiguration;
 
         return config;
     }

@@ -167,6 +167,16 @@ export class ExportService {
             }
         }
 
+        // 特殊处理槽位配置：只有当 AdditionalSlotCount > 0 时才保留槽位配置字段
+        const additionalSlotCount = cleaned.AdditionalSlotCount || 0;
+        if (additionalSlotCount <= 0) {
+            // 如果额外槽位数量为0或未设置，删除所有槽位配置字段
+            delete cleaned.AdditionalSlotCount;
+            delete cleaned.AdditionalSlotTags;
+            delete cleaned.AdditionalSlotNames;
+            delete cleaned.ReplaceExistingSlots;
+        }
+
         // 清理默认值和空值字段（根据Mod的DefaultValueHandling.Ignore）
         this.removeDefaultValues(cleaned);
 
