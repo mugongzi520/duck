@@ -1027,6 +1027,77 @@ export class UIManager {
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="mb-4" style="border-top: 2px solid var(--border-color, #e0e0e0); padding-top: 20px; margin-top: 20px;">
+                        <h4 class="text-secondary mb-2">🎯 武器自定义配置</h4>
+                        <div class="grid grid-cols-2">
+                            <div class="form-group">
+                                <label class="form-label">武器口径-Caliber</label>
+                                <select class="form-input weapon-field" data-key="Caliber">
+                                    <option value="">保持原武器口径</option>
+                                    <option value="AR" ${weaponProps.Caliber === 'AR' ? 'selected' : ''}>AR (自动步枪)</option>
+                                    <option value="L" ${weaponProps.Caliber === 'L' ? 'selected' : ''}>L (大口径)</option>
+                                    <option value="MAG" ${weaponProps.Caliber === 'MAG' ? 'selected' : ''}>MAG (弹匣)</option>
+                                    <option value="SHT" ${weaponProps.Caliber === 'SHT' ? 'selected' : ''}>SHT (霰弹枪)</option>
+                                    <option value="SMG" ${weaponProps.Caliber === 'SMG' ? 'selected' : ''}>SMG (S弹)</option>
+                                    <option value="SNP" ${weaponProps.Caliber === 'SNP' ? 'selected' : ''}>SNP (狙击弹)</option>
+                                    <option value="ARR" ${weaponProps.Caliber === 'ARR' ? 'selected' : ''}>ARR (箭矢)</option>
+                                    <option value="PWS" ${weaponProps.Caliber === 'PWS' ? 'selected' : ''}>PWS (小能量弹)</option>
+                                    <option value="PWL" ${weaponProps.Caliber === 'PWL' ? 'selected' : ''}>PWL (大能量弹)</option>
+                                    <option value="Rocket" ${weaponProps.Caliber === 'Rocket' ? 'selected' : ''}>Rocket (火箭弹)</option>
+                                </select>
+                                <small class="text-muted">定义武器使用的弹药口径（例如：给ak47装狙击弹）</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">开火方式-TriggerMode</label>
+                                <select class="form-input weapon-field" data-key="TriggerMode">
+                                    <option value="">保持原武器开火方式</option>
+                                    <option value="auto" ${weaponProps.TriggerMode === 'auto' ? 'selected' : ''}>auto (全自动)</option>
+                                    <option value="semi" ${weaponProps.TriggerMode === 'semi' ? 'selected' : ''}>semi (半自动)</option>
+                                    <option value="bolt" ${weaponProps.TriggerMode === 'bolt' ? 'selected' : ''}>bolt (栓动式)</option>
+                                </select>
+                                <small class="text-muted">定义武器的开火方式</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">装弹方式-ReloadMode</label>
+                                <select class="form-input weapon-field" data-key="ReloadMode">
+                                    <option value="">保持原武器装弹方式</option>
+                                    <option value="fullMag" ${weaponProps.ReloadMode === 'fullMag' ? 'selected' : ''}>fullMag (整弹匣换弹：一次性更换整个弹匣)</option>
+                                    <option value="singleBullet" ${weaponProps.ReloadMode === 'singleBullet' ? 'selected' : ''}>singleBullet (单发装填：逐发装填子弹)</option>
+                                </select>
+                                <small class="text-muted">定义武器的装弹方式</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">自动装弹-AutoReload</label>
+                                <select class="form-input weapon-field" data-key="AutoReload">
+                                    <option value="">保持原设置</option>
+                                    <option value="true" ${weaponProps.AutoReload === true ? 'selected' : ''}>是</option>
+                                    <option value="false" ${weaponProps.AutoReload === false ? 'selected' : ''}>否</option>
+                                </select>
+                                <small class="text-muted">是否自动装弹</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">弹道来源物品ID-ProjectileSourceItemId</label>
+                                <div style="display: flex; gap: 4px;">
+                                    <input type="number" class="form-input weapon-field" data-key="ProjectileSourceItemId" value="${weaponProps.ProjectileSourceItemId || ''}" placeholder="例如：100">
+                                    <button type="button" class="btn btn-icon" onclick="window.searchManager.showSearchModal(this.previousElementSibling)" title="搜索物品">
+                                        <i class="fa fa-search"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted">从指定物品ID复制弹道视觉</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">枪口特效来源物品ID-MuzzleFxSourceItemId</label>
+                                <div style="display: flex; gap: 4px;">
+                                    <input type="number" class="form-input weapon-field" data-key="MuzzleFxSourceItemId" value="${weaponProps.MuzzleFxSourceItemId || ''}" placeholder="例如：200">
+                                    <button type="button" class="btn btn-icon" onclick="window.searchManager.showSearchModal(this.previousElementSibling)" title="搜索物品">
+                                        <i class="fa fa-search"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted">从指定物品ID复制枪口特效</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -1565,11 +1636,72 @@ export class UIManager {
                 const weaponProps = {};
                 weaponFields.forEach(field => {
                     const key = field.dataset.key;
-                    const value = parseFloat(field.value) || 0;
-                    if (value !== 0 && value !== 1.0) { // 只保存非默认值
-                        weaponProps[key] = value;
+                    let value;
+                    
+                    // 处理不同类型的字段
+                    if (field.tagName === 'SELECT') {
+                        // 下拉选择框：字符串类型
+                        value = field.value;
+                        // 空字符串表示不修改，跳过
+                        if (value === '') {
+                            return;
+                        }
+                        // 处理AutoReload的布尔值转换
+                        if (key === 'AutoReload') {
+                            if (value === 'true') {
+                                value = true;
+                            } else if (value === 'false') {
+                                value = false;
+                            } else {
+                                return; // 保持原设置，不保存
+                            }
+                        }
+                    } else if (field.type === 'number') {
+                        // 数字输入框
+                        value = field.value.trim();
+                        if (value === '') {
+                            return; // 空值不保存
+                        }
+                        const numValue = parseFloat(value);
+                        if (isNaN(numValue)) {
+                            return;
+                        }
+                        // 对于ProjectileSourceItemId和MuzzleFxSourceItemId，保存所有非空值
+                        if (key === 'ProjectileSourceItemId' || key === 'MuzzleFxSourceItemId') {
+                            if (numValue > 0) {
+                                value = numValue;
+                            } else {
+                                return; // 无效值不保存
+                            }
+                        } else {
+                            // 其他数字字段：只保存非默认值（非0且非1.0）
+                            if (numValue !== 0 && numValue !== 1.0) {
+                                value = numValue;
+                            } else {
+                                return;
+                            }
+                        }
+                    } else {
+                        // 其他类型，跳过
+                        return;
+                    }
+                    
+                    weaponProps[key] = value;
+                });
+                
+                // 处理Hash字段（如果有）
+                const weaponHashFields = document.querySelectorAll('.weapon-hash-field');
+                weaponHashFields.forEach(field => {
+                    const key = field.dataset.key;
+                    const checkbox = field.previousElementSibling;
+                    if (checkbox && checkbox.classList.contains('weapon-hash-check') && checkbox.checked) {
+                        const value = parseFloat(field.value);
+                        if (value !== undefined && !isNaN(value) && field.value.trim() !== '') {
+                            weaponProps[key] = value;
+                        }
                     }
                 });
+                
                 if (Object.keys(weaponProps).length > 0) {
                     config.content.WeaponProperties = weaponProps;
                 }
@@ -3127,13 +3259,60 @@ export class UIManager {
                 const weaponProps = {};
                 weaponFields.forEach(field => {
                     const key = field.dataset.key;
-                    const value = parseFloat(field.value) || 0;
-                    if (value !== 0 && value !== 1.0) { // 只保存非默认值
-                        weaponProps[key] = value;
+                    let value;
+                    
+                    // 处理不同类型的字段
+                    if (field.tagName === 'SELECT') {
+                        // 下拉选择框：字符串类型
+                        value = field.value;
+                        // 空字符串表示不修改，跳过
+                        if (value === '') {
+                            return;
+                        }
+                        // 处理AutoReload的布尔值转换
+                        if (key === 'AutoReload') {
+                            if (value === 'true') {
+                                value = true;
+                            } else if (value === 'false') {
+                                value = false;
+                            } else {
+                                return; // 保持原设置，不保存
+                            }
+                        }
+                    } else if (field.type === 'number') {
+                        // 数字输入框
+                        value = field.value.trim();
+                        if (value === '') {
+                            return; // 空值不保存
+                        }
+                        const numValue = parseFloat(value);
+                        if (isNaN(numValue)) {
+                            return;
+                        }
+                        // 对于ProjectileSourceItemId和MuzzleFxSourceItemId，保存所有非空值
+                        if (key === 'ProjectileSourceItemId' || key === 'MuzzleFxSourceItemId') {
+                            if (numValue > 0) {
+                                value = numValue;
+                            } else {
+                                return; // 无效值不保存
+                            }
+                        } else {
+                            // 其他数字字段：只保存非默认值（非0且非1.0）
+                            if (numValue !== 0 && numValue !== 1.0) {
+                                value = numValue;
+                            } else {
+                                return;
+                            }
+                        }
+                    } else {
+                        // 其他类型，跳过
+                        return;
                     }
+                    
+                    weaponProps[key] = value;
                 });
                 
-                // 收集Hash属性（只有勾选时才保存）
+                // 处理Hash字段（如果有）
                 const weaponHashFields = document.querySelectorAll('.weapon-hash-field');
                 weaponHashFields.forEach(field => {
                     const key = field.dataset.key;
