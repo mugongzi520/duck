@@ -101,10 +101,6 @@ export class ExportService {
         // 以下字段Mod不支持，需要删除
         delete cleaned.Order;
         delete cleaned.DisplayQuality;
-        delete cleaned.MaxDurability;
-        delete cleaned.DurabilityLoss;
-        delete cleaned.UseTime;
-        delete cleaned.Repairable;
         
         // 以下字段Mod不支持（这些是旧版本的字段，Mod使用Stackable等）
         delete cleaned.CanBeSold;
@@ -167,16 +163,6 @@ export class ExportService {
             }
         }
 
-        // 特殊处理槽位配置：只有当 AdditionalSlotCount > 0 时才保留槽位配置字段
-        const additionalSlotCount = cleaned.AdditionalSlotCount || 0;
-        if (additionalSlotCount <= 0) {
-            // 如果额外槽位数量为0或未设置，删除所有槽位配置字段
-            delete cleaned.AdditionalSlotCount;
-            delete cleaned.AdditionalSlotTags;
-            delete cleaned.AdditionalSlotNames;
-            delete cleaned.ReplaceExistingSlots;
-        }
-
         // 清理默认值和空值字段（根据Mod的DefaultValueHandling.Ignore）
         this.removeDefaultValues(cleaned);
 
@@ -217,6 +203,10 @@ export class ExportService {
             'ReplaceExistingSlots': false,
             'EnableDecompose': false,
             'DecomposeMoney': 0,
+            'MaxDurability': 0,
+            'DurabilityLoss': 0,
+            'UseTime': 0,
+            'Repairable': false,
             'ResultItemAmount': 1,
             'RequirePerk': '',
             'ModuleRootDir': '',

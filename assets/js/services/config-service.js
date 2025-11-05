@@ -167,6 +167,34 @@ export class ConfigService {
             }
         }
 
+        // 额外一致性校验（基于当前Mod实现）
+        const c = config.content || {};
+        // 食物/饮料耐久消耗需要启用耐久
+        if (typeof c.UseDurability === 'number' && c.UseDurability > 0 && (!c.MaxDurability || c.MaxDurability <= 0)) {
+            warnings.push('设置了 UseDurability，但 MaxDurability 未启用（将不会扣耐久）');
+        }
+        // 药物耐久逻辑需要启用耐久
+        if (c.HealValue && c.UseDurabilityDrug && (!c.MaxDurability || c.MaxDurability <= 0)) {
+            warnings.push('药物启用了耐久消耗，但 MaxDurability 未启用（将不会扣耐久）');
+        }
+        // 可修复需要启用耐久
+        if (c.Repairable && (!c.MaxDurability || c.MaxDurability <= 0)) {
+            warnings.push('设置了可修复 Repairable，但 MaxDurability 为 0（无法实际修复）');
+        }
+
+        // 槽位配置一致性
+        const hasSlotTags = Array.isArray(c.AdditionalSlotTags) && c.AdditionalSlotTags.length > 0;
+        const hasSlotCount = typeof c.AdditionalSlotCount === 'number' && c.AdditionalSlotCount > 0;
+        if (hasSlotTags && !hasSlotCount) {
+            warnings.push('配置了 AdditionalSlotTags，但 AdditionalSlotCount 未设置（不会创建槽位）');
+        }
+        if (hasSlotCount && !hasSlotTags) {
+            warnings.push('配置了 AdditionalSlotCount，但 AdditionalSlotTags 为空（不会创建槽位）');
+        }
+        if (hasSlotCount && Array.isArray(c.AdditionalSlotNames) && c.AdditionalSlotNames.length > 0 && c.AdditionalSlotNames.length < c.AdditionalSlotCount) {
+            warnings.push('AdditionalSlotNames 数量少于 AdditionalSlotCount，多余槽位将使用默认名称');
+        }
+
         return {
             isValid: errors.length === 0,
             errors,

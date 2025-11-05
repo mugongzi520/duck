@@ -356,8 +356,18 @@ export class UIManager {
                     </div>
                     <div class="grid grid-cols-1 mb-3">
                         <div class="form-group">
-                            <label class="form-label">Buff持续时间</label>
-                            <input type="number" step="0.1" class="form-input" id="BuffDuration" value="${c.BuffDuration?.Duration || 0}" placeholder="秒">
+                            <label class="form-label">Buff持续时间-Duration</label>
+                            <input type="number" step="0.1" class="form-input" id="BuffDuration" value="${c.BuffDuration?.Duration || 0}" placeholder="持续时间（秒）">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 mb-3">
+                        <div class="form-checkbox">
+                            <input type="checkbox" id="BuffReplaceOriginalBuff" ${c.BuffDuration?.ReplaceOriginalBuff ? 'checked' : ''}>
+                            <label>替换原Buff-ReplaceOriginalBuff</label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">替换Buff ID-ReplacementBuffId</label>
+                            <input type="number" class="form-input" id="BuffReplacementBuffId" value="${c.BuffDuration?.ReplacementBuffId ?? -1}" placeholder="-1表示不替换">
                         </div>
                     </div>
                 </div>
@@ -1478,8 +1488,9 @@ export class UIManager {
         delete config.content.UnlockByDefault;
         delete config.content.HideInIndex;
         delete config.content.LockInDemo;
-        // 注意：AdditionalSlotTags、AdditionalSlotCount、AdditionalSlotNames 是有效字段，不应删除
-        // 这些字段将在后面的槽位配置收集逻辑中正确处理
+        delete config.content.AdditionalSlotTags;
+        delete config.content.AdditionalSlotCount;
+        delete config.content.AdditionalSlotNames;
 
         // 分解配方
         const enableDecompose = document.getElementById('EnableDecompose')?.checked;
@@ -1639,7 +1650,7 @@ export class UIManager {
                 const itemFields = document.querySelectorAll('.item-field');
                 
                 // Mod不支持的字段列表（这些字段会被忽略）
-                const unsupportedFields = ['Order', 'DisplayQuality', 'MaxDurability', 'DurabilityLoss', 'UseTime', 'Repairable'];
+                const unsupportedFields = ['Order', 'DisplayQuality'];
                 
                 itemFields.forEach(field => {
                     const key = field.dataset.key;
@@ -1652,7 +1663,8 @@ export class UIManager {
                     // 根据Mod的ItemConfig类，这些字段应该在根级别
                     const rootLevelFields = [
                         'MaxStackCount', 'EnergyValue', 'WaterValue', 'UseDurability',
-                        'HealValue', 'UseDurabilityDrug', 'DurabilityUsageDrug', 'CanUsePartDrug'
+                        'HealValue', 'UseDurabilityDrug', 'DurabilityUsageDrug', 'CanUsePartDrug',
+                        'MaxDurability', 'DurabilityLoss', 'UseTime', 'Repairable'
                     ];
                     
                     if (rootLevelFields.includes(key)) {
@@ -1697,7 +1709,8 @@ export class UIManager {
                     const itemProps = config.content.ItemProperties;
                     const rootLevelFields = [
                         'MaxStackCount', 'EnergyValue', 'WaterValue', 'UseDurability',
-                        'HealValue', 'UseDurabilityDrug', 'DurabilityUsageDrug', 'CanUsePartDrug'
+                        'HealValue', 'UseDurabilityDrug', 'DurabilityUsageDrug', 'CanUsePartDrug',
+                        'MaxDurability', 'DurabilityLoss', 'UseTime', 'Repairable'
                     ];
                     
                     // 如果根级别没有这些字段，但从ItemProperties中有，则迁移
@@ -1714,26 +1727,38 @@ export class UIManager {
 
         // 槽位配置（所有配置类型都支持）
         // Mod期望这些字段在根级别，而不是SlotConfiguration对象中
-        // 总是收集这些字段，让导出服务决定是否保留
         const slotConfigFields = document.querySelectorAll('.slot-config-field');
+        let hasSlotConfig = false;
         slotConfigFields.forEach(field => {
             const key = field.dataset.key;
             if (field.type === 'checkbox') {
-                config.content[key] = field.checked;
+                const checked = field.checked;
+                if (checked) {
+                    config.content[key] = checked;
+                    hasSlotConfig = true;
+                } else {
+                    delete config.content[key];
+                }
             } else if (field.type === 'number') {
                 const value = parseInt(field.value) || 0;
-                config.content[key] = value;
+                if (value !== 0) {
+                    config.content[key] = value;
+                    hasSlotConfig = true;
+                } else {
+                    delete config.content[key];
+                }
             } else {
                 const value = field.value.trim();
-                // 处理逗号分隔的数组
-                if (key.includes('Tags') || key.includes('Names')) {
-                    if (value) {
+                if (value) {
+                    // 处理逗号分隔的数组
+                    if (key.includes('Tags') || key.includes('Names')) {
                         config.content[key] = value.split(',').map(v => v.trim()).filter(v => v);
                     } else {
-                        config.content[key] = [];
+                        config.content[key] = value;
                     }
+                    hasSlotConfig = true;
                 } else {
-                    config.content[key] = value;
+                    delete config.content[key];
                 }
             }
         });
@@ -1851,16 +1876,16 @@ export class UIManager {
                             <input type="number" class="form-input item-field" data-key="MaxStackCount" value="${rootContent.MaxStackCount ?? itemProps.MaxStackCount ?? 1}">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">最大耐久度-MaxDurability <span style="color: #999; font-size: 12px;">(Mod不支持)</span></label>
-                            <input type="number" step="0.1" class="form-input item-field" data-key="MaxDurability" value="${itemProps.MaxDurability || 0}" disabled>
+                            <label class="form-label">最大耐久度-MaxDurability</label>
+                            <input type="number" step="0.1" class="form-input item-field" data-key="MaxDurability" value="${rootContent.MaxDurability ?? itemProps.MaxDurability ?? 0}">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">耐久度损失率-DurabilityLoss <span style="color: #999; font-size: 12px;">(Mod不支持)</span></label>
-                            <input type="number" step="0.1" class="form-input item-field" data-key="DurabilityLoss" value="${itemProps.DurabilityLoss || 0}" disabled>
+                            <label class="form-label">耐久度损失率-DurabilityLoss</label>
+                            <input type="number" step="0.01" class="form-input item-field" data-key="DurabilityLoss" value="${rootContent.DurabilityLoss ?? itemProps.DurabilityLoss ?? 0}">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">使用时间（秒）-UseTime <span style="color: #999; font-size: 12px;">(Mod不支持)</span></label>
-                            <input type="number" step="0.1" class="form-input item-field" data-key="UseTime" value="${itemProps.UseTime || 0}" disabled>
+                            <label class="form-label">使用时间（秒）-UseTime</label>
+                            <input type="number" step="0.1" class="form-input item-field" data-key="UseTime" value="${rootContent.UseTime ?? itemProps.UseTime ?? 0}">
                         </div>
                         <div class="form-group">
                             <label class="form-label">能量值-EnergyValue</label>
@@ -1894,8 +1919,8 @@ export class UIManager {
                     
                     <div class="grid grid-cols-3 mt-3">
                         <div class="form-checkbox">
-                            <input type="checkbox" class="item-field" data-key="Repairable" ${itemProps.Repairable ? 'checked' : ''} disabled>
-                            <label>可修复 <span style="color: #999; font-size: 12px;">(Mod不支持)</span></label>
+                            <input type="checkbox" class="item-field" data-key="Repairable" ${rootContent.Repairable ?? itemProps.Repairable ? 'checked' : ''}>
+                            <label>可修复-Repairable</label>
                         </div>
                         <div class="form-checkbox">
                             <input type="checkbox" class="item-field" data-key="UseDurabilityDrug" ${rootContent.UseDurabilityDrug ?? itemProps.UseDurabilityDrug ? 'checked' : ''}>
@@ -2906,12 +2931,14 @@ export class UIManager {
         
         // 首先检查表单中是否有BuffDuration元素
         const buffDurationElement = document.getElementById('BuffDuration');
+        const buffReplaceOriginal = document.getElementById('BuffReplaceOriginalBuff')?.checked || false;
+        const buffReplacementId = parseInt(document.getElementById('BuffReplacementBuffId')?.value) ?? -1;
         if (buffDurationElement) {
             const duration = parseFloat(buffDurationElement.value) || 0;
             config.content.BuffDuration = {
                 "Duration": duration,
-                "ReplaceOriginalBuff": false,
-                "ReplacementBuffId": -1
+                "ReplaceOriginalBuff": buffReplaceOriginal,
+                "ReplacementBuffId": buffReplacementId
             };
         } else {
             // 如果表单中没有BuffDuration元素，确保现有值是正确的对象格式
@@ -2919,16 +2946,16 @@ export class UIManager {
                 const existingValue = config.content.BuffDuration || 0;
                 config.content.BuffDuration = {
                     "Duration": parseFloat(existingValue) || 0,
-                    "ReplaceOriginalBuff": false,
-                    "ReplacementBuffId": -1
+                    "ReplaceOriginalBuff": buffReplaceOriginal,
+                    "ReplacementBuffId": buffReplacementId
                 };
             } else {
                 // 如果已经是对象，确保格式正确
                 const existingDuration = config.content.BuffDuration;
                 config.content.BuffDuration = {
                     "Duration": existingDuration.Duration || existingDuration.DefaultDuration || 0,
-                    "ReplaceOriginalBuff": existingDuration.ReplaceOriginalBuff || false,
-                    "ReplacementBuffId": existingDuration.ReplacementBuffId || -1
+                    "ReplaceOriginalBuff": buffReplaceOriginal || existingDuration.ReplaceOriginalBuff || false,
+                    "ReplacementBuffId": buffReplacementId !== -1 ? buffReplacementId : (existingDuration.ReplacementBuffId ?? -1)
                 };
             }
         }
@@ -3195,25 +3222,75 @@ export class UIManager {
                 break;
 
             default:
-                // 基础物品属性
+                // 基础物品属性（与Mod的ItemConfig根级字段对齐）
                 const itemFields = document.querySelectorAll('.item-field');
-                const itemProps = {};
+                const unsupportedFields = ['Order', 'DisplayQuality'];
                 itemFields.forEach(field => {
                     const key = field.dataset.key;
+                    if (unsupportedFields.includes(key) || field.disabled) return;
+                    const rootLevelFields = [
+                        'MaxStackCount', 'EnergyValue', 'WaterValue', 'UseDurability',
+                        'HealValue', 'UseDurabilityDrug', 'DurabilityUsageDrug', 'CanUsePartDrug',
+                        'MaxDurability', 'DurabilityLoss', 'UseTime', 'Repairable'
+                    ];
+                    if (!rootLevelFields.includes(key)) return;
+
                     if (field.type === 'checkbox') {
-                        if (field.checked) itemProps[key] = field.checked;
+                        if (field.checked) {
+                            config.content[key] = true;
+                        } else {
+                            if (key === 'UseDurabilityDrug' || key === 'CanUsePartDrug' || key === 'Repairable') {
+                                delete config.content[key];
+                            }
+                        }
                     } else if (field.type === 'number') {
                         const value = parseFloat(field.value) || 0;
-                        if (value !== 0) itemProps[key] = value;
+                        // Energy/Water 始终保存（即使为0），其余仅在非默认值保存
+                        if (key === 'EnergyValue' || key === 'WaterValue') {
+                            config.content[key] = value;
+                        } else {
+                            const defaultValue = key === 'MaxStackCount' ? 1 : 0;
+                            if (value !== defaultValue) {
+                                config.content[key] = value;
+                            } else {
+                                delete config.content[key];
+                            }
+                        }
                     } else {
                         const value = field.value.trim();
-                        if (value) itemProps[key] = value;
+                        if (value) {
+                            config.content[key] = value;
+                        } else {
+                            delete config.content[key];
+                        }
                     }
                 });
-                if (Object.keys(itemProps).length > 0) {
-                    config.content.ItemProperties = itemProps;
-                }
+                // 不再使用 ItemProperties 容器
+                delete config.content.ItemProperties;
         }
+
+        // 槽位配置（根级字段）
+        const slotConfigFields = document.querySelectorAll('.slot-config-field');
+        slotConfigFields.forEach(field => {
+            const key = field.dataset.key;
+            if (field.type === 'checkbox') {
+                if (field.checked) config.content[key] = true; else delete config.content[key];
+            } else if (field.type === 'number') {
+                const value = parseInt(field.value) || 0;
+                if (value !== 0) config.content[key] = value; else delete config.content[key];
+            } else {
+                const value = field.value.trim();
+                if (value) {
+                    if (key.includes('Tags') || key.includes('Names')) {
+                        config.content[key] = value.split(',').map(v => v.trim()).filter(v => v);
+                    } else {
+                        config.content[key] = value;
+                    }
+                } else {
+                    delete config.content[key];
+                }
+            }
+        });
 
         // mshook修改器
         const mshookFields = document.querySelectorAll('.mshook-field');
@@ -3226,34 +3303,6 @@ export class UIManager {
         if (Object.keys(mshook).length > 0) {
             config.content.mshook = mshook;
         }
-
-        // 槽位配置（所有配置类型都支持）
-        // Mod期望这些字段在根级别，而不是SlotConfiguration对象中
-        // 总是收集这些字段，让导出服务决定是否保留
-        const slotConfigFields = document.querySelectorAll('.slot-config-field');
-        slotConfigFields.forEach(field => {
-            const key = field.dataset.key;
-            if (field.type === 'checkbox') {
-                config.content[key] = field.checked;
-            } else if (field.type === 'number') {
-                const value = parseInt(field.value) || 0;
-                config.content[key] = value;
-            } else {
-                const value = field.value.trim();
-                // 处理逗号分隔的数组
-                if (key.includes('Tags') || key.includes('Names')) {
-                    if (value) {
-                        config.content[key] = value.split(',').map(v => v.trim()).filter(v => v);
-                    } else {
-                        config.content[key] = [];
-                    }
-                } else {
-                    config.content[key] = value;
-                }
-            }
-        });
-        // 删除SlotConfiguration对象（Mod不使用这个包装对象）
-        delete config.content.SlotConfiguration;
 
         return config;
     }
@@ -3380,6 +3429,16 @@ export class UIManager {
             if (!latestConfig) {
                 showNotification('错误', '无法收集配置数据', 'error');
                 return;
+            }
+            // 导出前校验配置
+            const { isValid, errors, warnings } = this.configService.validateConfig(latestConfig);
+            if (!isValid && errors && errors.length > 0) {
+                showNotification('错误', '配置校验失败：\n' + errors.join('\n'), 'error');
+                return;
+            }
+            if (warnings && warnings.length > 0) {
+                const proceed = await showConfirm('存在以下警告，仍要导出吗？\n\n' + warnings.join('\n'));
+                if (!proceed) return;
             }
             
             await this.exportService.exportConfig(latestConfig);
